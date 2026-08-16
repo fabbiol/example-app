@@ -38,38 +38,67 @@ export default function WeighTicketsIndex({
                     <table className="w-full min-w-[800px] text-left text-sm">
                         <thead className="border-b bg-muted/40">
                             <tr>
-                                <th className="px-4 py-3 font-medium">Ticket</th>
-                                <th className="px-4 py-3 font-medium">Cliente</th>
-                                <th className="px-4 py-3 font-medium">Produto</th>
+                                <th className="px-4 py-3 font-medium">
+                                    Ticket
+                                </th>
+                                <th className="px-4 py-3 font-medium">
+                                    Cliente
+                                </th>
+                                <th className="px-4 py-3 font-medium">
+                                    Produto
+                                </th>
                                 <th className="px-4 py-3 font-medium">Placa</th>
-                                <th className="px-4 py-3 font-medium">Líquido</th>
+                                <th className="px-4 py-3 font-medium">
+                                    Líquido
+                                </th>
                                 <th className="px-4 py-3 font-medium">Data</th>
                                 <th className="px-4 py-3 font-medium" />
                             </tr>
                         </thead>
                         <tbody>
                             {tickets.data.map((ticket) => (
-                                <tr key={ticket.id} className="border-b last:border-0">
+                                <tr
+                                    key={ticket.id}
+                                    className="border-b last:border-0"
+                                >
                                     <td className="px-4 py-3 font-mono text-xs">
                                         {ticket.number}
                                     </td>
-                                    <td className="px-4 py-3">{ticket.customer?.name}</td>
-                                    <td className="px-4 py-3">{ticket.product?.name}</td>
-                                    <td className="px-4 py-3">{ticket.vehicle_plate}</td>
+                                    <td className="px-4 py-3">
+                                        {ticket.customer?.name}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {ticket.product?.name}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {ticket.vehicle_plate}
+                                    </td>
                                     <td className="px-4 py-3 font-medium">
                                         {formatQty(ticket.net_weight)} t
                                     </td>
                                     <td className="px-4 py-3">
-                                        {new Date(ticket.weighed_at).toLocaleString('pt-BR')}
+                                        {new Date(
+                                            ticket.weighed_at,
+                                        ).toLocaleString('pt-BR')}
                                     </td>
                                     <td className="px-4 py-3">
                                         <div className="flex justify-end gap-2">
-                                            <Button variant="outline" size="sm" asChild>
-                                                <Link href={show(ticket.id)}>Ver</Link>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                asChild
+                                            >
+                                                <Link href={show(ticket.id)}>
+                                                    Ver
+                                                </Link>
                                             </Button>
                                             <Form
-                                                {...WeighTicketController.destroy.form(ticket.id)}
-                                                options={{ preserveScroll: true }}
+                                                {...WeighTicketController.destroy.form(
+                                                    ticket.id,
+                                                )}
+                                                options={{
+                                                    preserveScroll: true,
+                                                }}
                                             >
                                                 {({ processing }) => (
                                                     <Button

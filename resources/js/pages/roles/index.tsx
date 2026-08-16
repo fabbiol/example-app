@@ -9,11 +9,7 @@ import { Button } from '@/components/ui/button';
 import { create, edit, index } from '@/routes/roles';
 import type { Paginated, Role } from '@/types';
 
-export default function RolesIndex({
-    roles,
-}: {
-    roles: Paginated<Role>;
-}) {
+export default function RolesIndex({ roles }: { roles: Paginated<Role> }) {
     return (
         <>
             <Head title="Papéis" />
@@ -39,14 +35,21 @@ export default function RolesIndex({
                         <thead className="border-b bg-muted/40">
                             <tr>
                                 <th className="px-4 py-3 font-medium">Nome</th>
-                                <th className="px-4 py-3 font-medium">Acessos</th>
-                                <th className="px-4 py-3 font-medium">Pessoas</th>
+                                <th className="px-4 py-3 font-medium">
+                                    Acessos
+                                </th>
+                                <th className="px-4 py-3 font-medium">
+                                    Pessoas
+                                </th>
                                 <th className="px-4 py-3 font-medium" />
                             </tr>
                         </thead>
                         <tbody>
                             {roles.data.map((role) => (
-                                <tr key={role.id} className="border-b last:border-0">
+                                <tr
+                                    key={role.id}
+                                    className="border-b last:border-0"
+                                >
                                     <td className="px-4 py-3 font-medium">
                                         <div className="flex items-center gap-2">
                                             {role.name}
@@ -68,22 +71,32 @@ export default function RolesIndex({
                                     </td>
                                     <td className="px-4 py-3">
                                         <div className="flex justify-end gap-2">
-                                            <Button variant="outline" size="sm" asChild>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                asChild
+                                            >
                                                 <Link href={edit(role.id)}>
                                                     Editar
                                                 </Link>
                                             </Button>
-                                            {! role.is_system && (
+                                            {!role.is_system && (
                                                 <Form
-                                                    {...RoleController.destroy.form(role.id)}
-                                                    options={{ preserveScroll: true }}
+                                                    {...RoleController.destroy.form(
+                                                        role.id,
+                                                    )}
+                                                    options={{
+                                                        preserveScroll: true,
+                                                    }}
                                                 >
                                                     {({ processing }) => (
                                                         <Button
                                                             type="submit"
                                                             variant="destructive"
                                                             size="sm"
-                                                            disabled={processing}
+                                                            disabled={
+                                                                processing
+                                                            }
                                                         >
                                                             Excluir
                                                         </Button>

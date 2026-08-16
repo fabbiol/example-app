@@ -44,7 +44,9 @@ export default function CustomersEdit({ customer }: { customer: Customer }) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="marketup_code">Código MarketUp</Label>
+                                <Label htmlFor="marketup_code">
+                                    Código MarketUp
+                                </Label>
                                 <Input
                                     id="marketup_code"
                                     name="marketup_code"

@@ -20,7 +20,12 @@ type QueueOrder = {
     customer?: { id: number; name: string };
     product?: Pick<
         Product,
-        'id' | 'name' | 'unit' | 'density' | 'bucket_capacity_m3' | 'stock_quantity'
+        | 'id'
+        | 'name'
+        | 'unit'
+        | 'density'
+        | 'bucket_capacity_m3'
+        | 'stock_quantity'
     >;
 };
 
@@ -48,12 +53,12 @@ export default function LoaderIndex({
 
             <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-stone-200 bg-white px-4 py-4">
                 <div>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
-                            Operador da pá
-                        </p>
-                        <h1 className="text-xl font-bold text-stone-900">
-                            {operator.name ?? 'Operador'}
-                        </h1>
+                    <p className="text-xs font-semibold tracking-wide text-stone-500 uppercase">
+                        Operador da pá
+                    </p>
+                    <h1 className="text-xl font-bold text-stone-900">
+                        {operator.name ?? 'Operador'}
+                    </h1>
                 </div>
                 <div className="flex gap-2">
                     <Button
@@ -105,29 +110,32 @@ export default function LoaderIndex({
                                 >
                                     <div className="flex items-start justify-between gap-3">
                                         <div>
-                                            <p className="text-2xl font-bold leading-tight text-stone-900">
-                                                #{order.id} · {order.customer?.name}
+                                            <p className="text-2xl leading-tight font-bold text-stone-900">
+                                                #{order.id} ·{' '}
+                                                {order.customer?.name}
                                             </p>
                                             <p className="mt-1 text-lg text-stone-600">
                                                 {order.product?.name}
                                             </p>
                                         </div>
                                         <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-950">
-                                            {statusLabel[order.status] ?? order.status}
+                                            {statusLabel[order.status] ??
+                                                order.status}
                                         </span>
                                     </div>
 
                                     <div className="mt-4 grid grid-cols-2 gap-3 text-base">
                                         <div className="rounded-xl bg-emerald-50 p-3">
-                                            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">
+                                            <p className="text-xs font-semibold tracking-wide text-emerald-800 uppercase">
                                                 Restante
                                             </p>
                                             <p className="text-xl font-bold text-emerald-950">
-                                                {formatQty(order.remaining_m3)} m³
+                                                {formatQty(order.remaining_m3)}{' '}
+                                                m³
                                             </p>
                                         </div>
                                         <div className="rounded-xl bg-stone-100 p-3">
-                                            <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
+                                            <p className="text-xs font-semibold tracking-wide text-stone-500 uppercase">
                                                 Pedido
                                             </p>
                                             <p className="text-xl font-bold text-stone-900">
@@ -139,7 +147,9 @@ export default function LoaderIndex({
 
                                     <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone-600">
                                         {order.vehicle_plate && (
-                                            <span>Placa {order.vehicle_plate}</span>
+                                            <span>
+                                                Placa {order.vehicle_plate}
+                                            </span>
                                         )}
                                         {order.destination && (
                                             <span>{order.destination}</span>
@@ -158,8 +168,8 @@ export default function LoaderIndex({
                             Fila vazia
                         </p>
                         <p className="mt-2 max-w-sm text-base text-stone-600">
-                            Quando o escritório liberar um pedido, toque em atualizar para
-                            aparecer aqui.
+                            Quando o escritório liberar um pedido, toque em
+                            atualizar para aparecer aqui.
                         </p>
                         <Button
                             type="button"

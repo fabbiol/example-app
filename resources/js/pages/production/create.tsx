@@ -1,5 +1,5 @@
 import { Form, Head, Link } from '@inertiajs/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import ProductionEntryController from '@/actions/App/Http/Controllers/ProductionEntryController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
@@ -46,7 +46,9 @@ export default function ProductionCreate({
     const [stage, setStage] = useState('quarry_to_primary');
     const [truckId, setTruckId] = useState('');
     const [tripsCount, setTripsCount] = useState('');
-    const [truckCapacity, setTruckCapacity] = useState(String(defaults.truck_capacity_m3));
+    const [truckCapacity, setTruckCapacity] = useState(
+        String(defaults.truck_capacity_m3),
+    );
     const [inputUnit, setInputUnit] = useState<'m3' | 'ton'>('m3');
     const [quantityInput, setQuantityInput] = useState('');
     const [applyCircuit, setApplyCircuit] = useState(true);
@@ -54,34 +56,17 @@ export default function ProductionCreate({
         defaultCircuitId ? String(defaultCircuitId) : '',
     );
 
-    const selectedProduct = products.find((product) => String(product.id) === productId);
+    const selectedProduct = products.find(
+        (product) => String(product.id) === productId,
+    );
     const selectedTruck = trucks.find((truck) => String(truck.id) === truckId);
-    const selectedCircuit = circuits.find((circuit) => String(circuit.id) === circuitId);
-    const density = selectedProduct ? Number(selectedProduct.density) : defaults.density;
+    const selectedCircuit = circuits.find(
+        (circuit) => String(circuit.id) === circuitId,
+    );
+    const density = selectedProduct
+        ? Number(selectedProduct.density)
+        : defaults.density;
     const showCircuit = stage === 'quarry_to_primary';
-
-    useEffect(() => {
-        if (selectedTruck) {
-            setTruckCapacity(String(selectedTruck.capacity_m3));
-        }
-    }, [selectedTruck?.id]);
-
-    useEffect(() => {
-        if (selectedProduct) {
-            setInputUnit(selectedProduct.unit);
-            if (!selectedTruck) {
-                setTruckCapacity(String(selectedProduct.bucket_capacity_m3));
-            }
-        }
-    }, [selectedProduct?.id]);
-
-    useEffect(() => {
-        if (!showCircuit) {
-            setApplyCircuit(false);
-        } else if (defaultCircuitId) {
-            setApplyCircuit(true);
-        }
-    }, [showCircuit, defaultCircuitId]);
 
     const preview = useMemo(() => {
         if (method === 'trips') {
@@ -120,7 +105,12 @@ export default function ProductionCreate({
     }, [method, tripsCount, truckCapacity, quantityInput, inputUnit, density]);
 
     const distributionPreview = useMemo(() => {
-        if (!showCircuit || !applyCircuit || !selectedCircuit?.yields || !preview) {
+        if (
+            !showCircuit ||
+            !applyCircuit ||
+            !selectedCircuit?.yields ||
+            !preview
+        ) {
             return [];
         }
 
@@ -132,7 +122,9 @@ export default function ProductionCreate({
 
             return {
                 id: yieldItem.id,
-                name: yieldItem.product?.name ?? `Produto #${yieldItem.product_id}`,
+                name:
+                    yieldItem.product?.name ??
+                    `Produto #${yieldItem.product_id}`,
                 group: yieldItem.group_name,
                 percent: yieldItem.percent,
                 range:
@@ -183,11 +175,23 @@ export default function ProductionCreate({
                                     id="stage"
                                     name="stage"
                                     value={stage}
-                                    onChange={(event) => setStage(event.target.value)}
+                                    onChange={(event) => {
+                                        const nextStage = event.target.value;
+                                        setStage(nextStage);
+
+                                        if (nextStage !== 'quarry_to_primary') {
+                                            setApplyCircuit(false);
+                                        } else if (defaultCircuitId) {
+                                            setApplyCircuit(true);
+                                        }
+                                    }}
                                     className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                 >
                                     {stages.map((item) => (
-                                        <option key={item.value} value={item.value}>
+                                        <option
+                                            key={item.value}
+                                            value={item.value}
+                                        >
                                             {item.label}
                                         </option>
                                     ))}
@@ -206,15 +210,40 @@ export default function ProductionCreate({
                                     name="product_id"
                                     required
                                     value={productId}
-                                    onChange={(event) => setProductId(event.target.value)}
+                                    onChange={(event) => {
+                                        const nextProductId =
+                                            event.target.value;
+                                        setProductId(nextProductId);
+                                        const product = products.find(
+                                            (item) =>
+                                                String(item.id) ===
+                                                nextProductId,
+                                        );
+
+                                        if (product) {
+                                            setInputUnit(product.unit);
+
+                                            if (!truckId) {
+                                                setTruckCapacity(
+                                                    String(
+                                                        product.bucket_capacity_m3,
+                                                    ),
+                                                );
+                                            }
+                                        }
+                                    }}
                                     className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                 >
                                     <option value="" disabled>
                                         Selecione
                                     </option>
                                     {products.map((product) => (
-                                        <option key={product.id} value={product.id}>
-                                            {product.name} ({unitLabel(product.unit)})
+                                        <option
+                                            key={product.id}
+                                            value={product.id}
+                                        >
+                                            {product.name} (
+                                            {unitLabel(product.unit)})
                                         </option>
                                     ))}
                                 </select>
@@ -235,41 +264,62 @@ export default function ProductionCreate({
                                             className="mt-0.5 size-4 rounded border"
                                             checked={applyCircuit}
                                             onChange={(event) =>
-                                                setApplyCircuit(event.target.checked)
+                                                setApplyCircuit(
+                                                    event.target.checked,
+                                                )
                                             }
                                         />
                                         <span>
-                                            Distribuir no circuito secundário (agregados)
+                                            Distribuir no circuito secundário
+                                            (agregados)
                                             <span className="mt-1 block text-xs text-muted-foreground">
-                                                A alimentação não entra no estoque; o estoque sobe
-                                                nos produtos do circuito (Brita 3/4, 1/2, pedrisco,
-                                                pó).
+                                                A alimentação não entra no
+                                                estoque; o estoque sobe nos
+                                                produtos do circuito (Brita 3/4,
+                                                1/2, pedrisco, pó).
                                             </span>
                                         </span>
                                     </label>
-                                    <InputError message={errors.apply_circuit} />
+                                    <InputError
+                                        message={errors.apply_circuit}
+                                    />
 
                                     {applyCircuit && (
                                         <div className="grid gap-2">
-                                            <Label htmlFor="crushing_circuit_id">Circuito</Label>
+                                            <Label htmlFor="crushing_circuit_id">
+                                                Circuito
+                                            </Label>
                                             <select
                                                 id="crushing_circuit_id"
                                                 name="crushing_circuit_id"
                                                 value={circuitId}
                                                 onChange={(event) =>
-                                                    setCircuitId(event.target.value)
+                                                    setCircuitId(
+                                                        event.target.value,
+                                                    )
                                                 }
                                                 className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                             >
-                                                <option value="">Circuito padrão</option>
+                                                <option value="">
+                                                    Circuito padrão
+                                                </option>
                                                 {circuits.map((circuit) => (
-                                                    <option key={circuit.id} value={circuit.id}>
+                                                    <option
+                                                        key={circuit.id}
+                                                        value={circuit.id}
+                                                    >
                                                         {circuit.name}
-                                                        {circuit.is_default ? ' (padrão)' : ''}
+                                                        {circuit.is_default
+                                                            ? ' (padrão)'
+                                                            : ''}
                                                     </option>
                                                 ))}
                                             </select>
-                                            <InputError message={errors.crushing_circuit_id} />
+                                            <InputError
+                                                message={
+                                                    errors.crushing_circuit_id
+                                                }
+                                            />
                                         </div>
                                     )}
                                 </div>
@@ -283,17 +333,25 @@ export default function ProductionCreate({
                                             key={item.value}
                                             type="button"
                                             variant={
-                                                method === item.value ? 'default' : 'outline'
+                                                method === item.value
+                                                    ? 'default'
+                                                    : 'outline'
                                             }
                                             disabled={!item.available}
                                             onClick={() => {
                                                 if (item.available) {
-                                                    setMethod(item.value as 'trips' | 'quantity');
+                                                    setMethod(
+                                                        item.value as
+                                                            | 'trips'
+                                                            | 'quantity',
+                                                    );
                                                 }
                                             }}
                                         >
                                             {item.label}
-                                            {!item.available ? ' (em breve)' : ''}
+                                            {!item.available
+                                                ? ' (em breve)'
+                                                : ''}
                                         </Button>
                                     ))}
                                 </div>
@@ -303,19 +361,47 @@ export default function ProductionCreate({
                             {method === 'trips' ? (
                                 <>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="truck_id">Caminhão</Label>
+                                        <Label htmlFor="truck_id">
+                                            Caminhão
+                                        </Label>
                                         <select
                                             id="truck_id"
                                             name="truck_id"
                                             value={truckId}
-                                            onChange={(event) => setTruckId(event.target.value)}
+                                            onChange={(event) => {
+                                                const nextTruckId =
+                                                    event.target.value;
+                                                setTruckId(nextTruckId);
+                                                const truck = trucks.find(
+                                                    (item) =>
+                                                        String(item.id) ===
+                                                        nextTruckId,
+                                                );
+
+                                                if (truck) {
+                                                    setTruckCapacity(
+                                                        String(
+                                                            truck.capacity_m3,
+                                                        ),
+                                                    );
+                                                }
+                                            }}
                                             className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                         >
-                                            <option value="">Informar caçamba manualmente</option>
+                                            <option value="">
+                                                Informar caçamba manualmente
+                                            </option>
                                             {trucks.map((truck) => (
-                                                <option key={truck.id} value={truck.id}>
-                                                    {truck.name} · {truck.plate} ·{' '}
-                                                    {formatQty(truck.capacity_m3)} m³
+                                                <option
+                                                    key={truck.id}
+                                                    value={truck.id}
+                                                >
+                                                    {truck.name} · {truck.plate}{' '}
+                                                    ·{' '}
+                                                    {formatQty(
+                                                        truck.capacity_m3,
+                                                    )}{' '}
+                                                    m³
                                                 </option>
                                             ))}
                                         </select>
@@ -324,7 +410,9 @@ export default function ProductionCreate({
 
                                     <div className="grid gap-4 sm:grid-cols-2">
                                         <div className="grid gap-2">
-                                            <Label htmlFor="trips_count">Nº de viagens</Label>
+                                            <Label htmlFor="trips_count">
+                                                Nº de viagens
+                                            </Label>
                                             <Input
                                                 id="trips_count"
                                                 name="trips_count"
@@ -333,10 +421,14 @@ export default function ProductionCreate({
                                                 required
                                                 value={tripsCount}
                                                 onChange={(event) =>
-                                                    setTripsCount(event.target.value)
+                                                    setTripsCount(
+                                                        event.target.value,
+                                                    )
                                                 }
                                             />
-                                            <InputError message={errors.trips_count} />
+                                            <InputError
+                                                message={errors.trips_count}
+                                            />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor="truck_capacity_m3">
@@ -351,37 +443,57 @@ export default function ProductionCreate({
                                                 required={!truckId}
                                                 value={truckCapacity}
                                                 onChange={(event) =>
-                                                    setTruckCapacity(event.target.value)
+                                                    setTruckCapacity(
+                                                        event.target.value,
+                                                    )
                                                 }
-                                                readOnly={Boolean(selectedTruck)}
+                                                readOnly={Boolean(
+                                                    selectedTruck,
+                                                )}
                                             />
-                                            <InputError message={errors.truck_capacity_m3} />
+                                            <InputError
+                                                message={
+                                                    errors.truck_capacity_m3
+                                                }
+                                            />
                                         </div>
                                     </div>
                                 </>
                             ) : (
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="grid gap-2">
-                                        <Label htmlFor="input_unit">Unidade informada</Label>
+                                        <Label htmlFor="input_unit">
+                                            Unidade informada
+                                        </Label>
                                         <select
                                             id="input_unit"
                                             name="input_unit"
                                             value={inputUnit}
                                             onChange={(event) =>
-                                                setInputUnit(event.target.value as 'm3' | 'ton')
+                                                setInputUnit(
+                                                    event.target.value as
+                                                        'm3' | 'ton',
+                                                )
                                             }
                                             className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                         >
                                             {units.map((unit) => (
-                                                <option key={unit.value} value={unit.value}>
+                                                <option
+                                                    key={unit.value}
+                                                    value={unit.value}
+                                                >
                                                     {unit.label}
                                                 </option>
                                             ))}
                                         </select>
-                                        <InputError message={errors.input_unit} />
+                                        <InputError
+                                            message={errors.input_unit}
+                                        />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="quantity_input">Quantidade</Label>
+                                        <Label htmlFor="quantity_input">
+                                            Quantidade
+                                        </Label>
                                         <Input
                                             id="quantity_input"
                                             name="quantity_input"
@@ -391,26 +503,35 @@ export default function ProductionCreate({
                                             required
                                             value={quantityInput}
                                             onChange={(event) =>
-                                                setQuantityInput(event.target.value)
+                                                setQuantityInput(
+                                                    event.target.value,
+                                                )
                                             }
                                         />
-                                        <InputError message={errors.quantity_input} />
+                                        <InputError
+                                            message={errors.quantity_input}
+                                        />
                                     </div>
                                 </div>
                             )}
 
                             {preview && (
                                 <div className="rounded-md border bg-muted/30 px-3 py-3 text-sm">
-                                    <p className="font-medium">Prévia da alimentação</p>
+                                    <p className="font-medium">
+                                        Prévia da alimentação
+                                    </p>
                                     <p className="mt-1 text-muted-foreground">
-                                        {preview.m3} m³ ≈ {preview.ton} t (densidade {density})
+                                        {preview.m3} m³ ≈ {preview.ton} t
+                                        (densidade {density})
                                     </p>
                                 </div>
                             )}
 
                             {distributionPreview.length > 0 && (
                                 <div className="rounded-md border px-3 py-3 text-sm">
-                                    <p className="font-medium">Prévia do circuito</p>
+                                    <p className="font-medium">
+                                        Prévia do circuito
+                                    </p>
                                     <ul className="mt-2 space-y-1 text-muted-foreground">
                                         {distributionPreview.map((item) => (
                                             <li
@@ -419,9 +540,14 @@ export default function ProductionCreate({
                                             >
                                                 <span>
                                                     {item.name}
-                                                    {item.group ? ` · ${item.group}` : ''}{' '}
+                                                    {item.group
+                                                        ? ` · ${item.group}`
+                                                        : ''}{' '}
                                                     ({item.percent}%
-                                                    {item.range ? ` · faixa ${item.range}` : ''})
+                                                    {item.range
+                                                        ? ` · faixa ${item.range}`
+                                                        : ''}
+                                                    )
                                                 </span>
                                                 <span className="font-medium text-foreground">
                                                     {item.tons} t
@@ -441,7 +567,10 @@ export default function ProductionCreate({
                                     className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                 >
                                     {shifts.map((shift) => (
-                                        <option key={shift.value} value={shift.value}>
+                                        <option
+                                            key={shift.value}
+                                            value={shift.value}
+                                        >
                                             {shift.label}
                                         </option>
                                     ))}

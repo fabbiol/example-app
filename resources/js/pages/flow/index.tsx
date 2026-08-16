@@ -1,11 +1,7 @@
 import { Head, router } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
-import {
-    ExpeditionFlow,
-    YardFlow,
-    type OrderPhaseQty,
-    type YardPhaseQty,
-} from '@/components/flow-diagram';
+import { useState } from 'react';
+import type { OrderPhaseQty, YardPhaseQty } from '@/components/flow-diagram';
+import { ExpeditionFlow, YardFlow } from '@/components/flow-diagram';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,13 +39,8 @@ export default function FlowIndex({
     periods: PeriodOption[];
 }) {
     const [diagram, setDiagram] = useState<Diagram>('expedicao');
-    const [from, setFrom] = useState(filters.from ?? '');
-    const [to, setTo] = useState(filters.to ?? '');
-
-    useEffect(() => {
-        setFrom(filters.from ?? '');
-        setTo(filters.to ?? '');
-    }, [filters.from, filters.to]);
+    const from = filters.from ?? '';
+    const to = filters.to ?? '';
 
     const applyPeriod = (period: string) => {
         if (period === 'today') {
@@ -122,9 +113,7 @@ export default function FlowIndex({
                                 className="w-40"
                                 value={from}
                                 onChange={(event) => {
-                                    const value = event.target.value;
-                                    setFrom(value);
-                                    applyCustom(value, to);
+                                    applyCustom(event.target.value, to);
                                 }}
                             />
                         </div>
@@ -136,9 +125,7 @@ export default function FlowIndex({
                                 className="w-40"
                                 value={to}
                                 onChange={(event) => {
-                                    const value = event.target.value;
-                                    setTo(value);
-                                    applyCustom(from, value);
+                                    applyCustom(from, event.target.value);
                                 }}
                             />
                         </div>
@@ -148,7 +135,9 @@ export default function FlowIndex({
                 <div className="flex flex-wrap gap-2">
                     <Button
                         type="button"
-                        variant={diagram === 'expedicao' ? 'default' : 'outline'}
+                        variant={
+                            diagram === 'expedicao' ? 'default' : 'outline'
+                        }
                         onClick={() => setDiagram('expedicao')}
                     >
                         Expedição
@@ -175,31 +164,48 @@ export default function FlowIndex({
                         <table className="w-full min-w-[640px] text-left text-sm">
                             <thead className="border-b bg-muted/40">
                                 <tr>
-                                    <th className="px-4 py-3 font-medium">De</th>
-                                    <th className="px-4 py-3 font-medium">Para</th>
-                                    <th className="px-4 py-3 font-medium">Quando</th>
+                                    <th className="px-4 py-3 font-medium">
+                                        De
+                                    </th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Para
+                                    </th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Quando
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr className="border-b">
-                                    <td className="px-4 py-3 text-muted-foreground">—</td>
+                                    <td className="px-4 py-3 text-muted-foreground">
+                                        —
+                                    </td>
                                     <td className="px-4 py-3">Aberto</td>
-                                    <td className="px-4 py-3">Cadastro do pedido</td>
+                                    <td className="px-4 py-3">
+                                        Cadastro do pedido
+                                    </td>
                                 </tr>
                                 <tr className="border-b">
                                     <td className="px-4 py-3">Aberto</td>
                                     <td className="px-4 py-3">Agendado</td>
-                                    <td className="px-4 py-3">Edição com data de agendamento</td>
-                                </tr>
-                                <tr className="border-b">
-                                    <td className="px-4 py-3">Aberto ou Agendado</td>
-                                    <td className="px-4 py-3">Carregando</td>
                                     <td className="px-4 py-3">
-                                        Modo pá, carregamento ou balança — ainda falta mais que 0,050
+                                        Edição com data de agendamento
                                     </td>
                                 </tr>
                                 <tr className="border-b">
-                                    <td className="px-4 py-3">Aberto, Agendado ou Carregando</td>
+                                    <td className="px-4 py-3">
+                                        Aberto ou Agendado
+                                    </td>
+                                    <td className="px-4 py-3">Carregando</td>
+                                    <td className="px-4 py-3">
+                                        Modo pá, carregamento ou balança — ainda
+                                        falta mais que 0,050
+                                    </td>
+                                </tr>
+                                <tr className="border-b">
+                                    <td className="px-4 py-3">
+                                        Aberto, Agendado ou Carregando
+                                    </td>
                                     <td className="px-4 py-3">Concluído</td>
                                     <td className="px-4 py-3">
                                         Quantidade carregada cobre o pedido
@@ -208,11 +214,17 @@ export default function FlowIndex({
                                 <tr className="border-b">
                                     <td className="px-4 py-3">Qualquer um</td>
                                     <td className="px-4 py-3">Cancelado</td>
-                                    <td className="px-4 py-3">Mudança de status na edição</td>
+                                    <td className="px-4 py-3">
+                                        Mudança de status na edição
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td className="px-4 py-3">Carregando ou Concluído</td>
-                                    <td className="px-4 py-3">Aberto ou Carregando</td>
+                                    <td className="px-4 py-3">
+                                        Carregando ou Concluído
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        Aberto ou Carregando
+                                    </td>
                                     <td className="px-4 py-3">
                                         Apaga estimativa ou ticket (estorno)
                                     </td>
@@ -225,33 +237,56 @@ export default function FlowIndex({
                         <table className="w-full min-w-[640px] text-left text-sm">
                             <thead className="border-b bg-muted/40">
                                 <tr>
-                                    <th className="px-4 py-3 font-medium">Etapa</th>
-                                    <th className="px-4 py-3 font-medium">Circuito</th>
-                                    <th className="px-4 py-3 font-medium">Estoque</th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Etapa
+                                    </th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Circuito
+                                    </th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Estoque
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr className="border-b">
-                                    <td className="px-4 py-3">Usina / produtos</td>
+                                    <td className="px-4 py-3">
+                                        Usina / produtos
+                                    </td>
                                     <td className="px-4 py-3">Não se aplica</td>
-                                    <td className="px-4 py-3">Soma no produto apontado</td>
+                                    <td className="px-4 py-3">
+                                        Soma no produto apontado
+                                    </td>
                                 </tr>
                                 <tr className="border-b">
-                                    <td className="px-4 py-3">Lavra → primário</td>
+                                    <td className="px-4 py-3">
+                                        Lavra → primário
+                                    </td>
                                     <td className="px-4 py-3">Desligado</td>
-                                    <td className="px-4 py-3">Soma no produto de feed</td>
+                                    <td className="px-4 py-3">
+                                        Soma no produto de feed
+                                    </td>
                                 </tr>
                                 <tr className="border-b">
-                                    <td className="px-4 py-3">Lavra → primário</td>
+                                    <td className="px-4 py-3">
+                                        Lavra → primário
+                                    </td>
                                     <td className="px-4 py-3">Ligado</td>
                                     <td className="px-4 py-3">
-                                        Feed não soma. Cada brita filha entra pelo %
+                                        Feed não soma. Cada brita filha entra
+                                        pelo %
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td className="px-4 py-3">Qualquer lançamento</td>
-                                    <td className="px-4 py-3">Excluir apontamento</td>
-                                    <td className="px-4 py-3">Estorna o que tinha afetado estoque</td>
+                                    <td className="px-4 py-3">
+                                        Qualquer lançamento
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        Excluir apontamento
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        Estorna o que tinha afetado estoque
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>

@@ -52,13 +52,16 @@ export default function CrushingCircuitsEdit({
     );
 
     const totalPercent = useMemo(
-        () => yields.reduce((sum, item) => sum + (Number(item.percent) || 0), 0),
+        () =>
+            yields.reduce((sum, item) => sum + (Number(item.percent) || 0), 0),
         [yields],
     );
 
     const updateYield = (key: string, patch: Partial<YieldDraft>) => {
         setYields((current) =>
-            current.map((item) => (item.key === key ? { ...item, ...patch } : item)),
+            current.map((item) =>
+                item.key === key ? { ...item, ...patch } : item,
+            ),
         );
     };
 
@@ -104,17 +107,25 @@ export default function CrushingCircuitsEdit({
                 >
                     {({ errors, processing }) => (
                         <>
-                            <input type="hidden" name="is_active" value={isActive ? '1' : '0'} />
+                            <input
+                                type="hidden"
+                                name="is_active"
+                                value={isActive ? '1' : '0'}
+                            />
 
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="name">Nome do circuito</Label>
+                                    <Label htmlFor="name">
+                                        Nome do circuito
+                                    </Label>
                                     <Input
                                         id="name"
                                         name="name"
                                         required
                                         value={name}
-                                        onChange={(event) => setName(event.target.value)}
+                                        onChange={(event) =>
+                                            setName(event.target.value)
+                                        }
                                     />
                                     <InputError message={errors.name} />
                                 </div>
@@ -124,7 +135,9 @@ export default function CrushingCircuitsEdit({
                                             type="checkbox"
                                             checked={isActive}
                                             onChange={(event) =>
-                                                setIsActive(event.target.checked)
+                                                setIsActive(
+                                                    event.target.checked,
+                                                )
                                             }
                                             className="size-4 rounded border"
                                         />
@@ -140,7 +153,9 @@ export default function CrushingCircuitsEdit({
                                     name="notes"
                                     rows={2}
                                     value={notes}
-                                    onChange={(event) => setNotes(event.target.value)}
+                                    onChange={(event) =>
+                                        setNotes(event.target.value)
+                                    }
                                     className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs"
                                 />
                                 <InputError message={errors.notes} />
@@ -156,7 +171,9 @@ export default function CrushingCircuitsEdit({
                                             Soma atual:{' '}
                                             <span
                                                 className={
-                                                    Math.abs(totalPercent - 100) > 0.05
+                                                    Math.abs(
+                                                        totalPercent - 100,
+                                                    ) > 0.05
                                                         ? 'text-destructive'
                                                         : 'text-foreground'
                                                 }
@@ -166,7 +183,12 @@ export default function CrushingCircuitsEdit({
                                             (meta 100%)
                                         </p>
                                     </div>
-                                    <Button type="button" variant="outline" size="sm" onClick={addYield}>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={addYield}
+                                    >
                                         <Plus />
                                         Produto
                                     </Button>
@@ -190,7 +212,10 @@ export default function CrushingCircuitsEdit({
                                             <input
                                                 type="hidden"
                                                 name={`yields[${index}][sort_order]`}
-                                                value={item.sort_order || String(index + 1)}
+                                                value={
+                                                    item.sort_order ||
+                                                    String(index + 1)
+                                                }
                                             />
 
                                             <div className="grid gap-2 sm:col-span-4">
@@ -201,7 +226,9 @@ export default function CrushingCircuitsEdit({
                                                     value={item.product_id}
                                                     onChange={(event) =>
                                                         updateYield(item.key, {
-                                                            product_id: event.target.value,
+                                                            product_id:
+                                                                event.target
+                                                                    .value,
                                                         })
                                                     }
                                                     className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
@@ -210,14 +237,20 @@ export default function CrushingCircuitsEdit({
                                                         Selecione
                                                     </option>
                                                     {products.map((product) => (
-                                                        <option key={product.id} value={product.id}>
-                                                            {product.name} ({product.code})
+                                                        <option
+                                                            key={product.id}
+                                                            value={product.id}
+                                                        >
+                                                            {product.name} (
+                                                            {product.code})
                                                         </option>
                                                     ))}
                                                 </select>
                                                 <InputError
                                                     message={
-                                                        errors[`yields.${index}.product_id`]
+                                                        errors[
+                                                            `yields.${index}.product_id`
+                                                        ]
                                                     }
                                                 />
                                             </div>
@@ -229,7 +262,9 @@ export default function CrushingCircuitsEdit({
                                                     value={item.group_name}
                                                     onChange={(event) =>
                                                         updateYield(item.key, {
-                                                            group_name: event.target.value,
+                                                            group_name:
+                                                                event.target
+                                                                    .value,
                                                         })
                                                     }
                                                     placeholder="Ex.: Brita 1 e 2"
@@ -248,12 +283,18 @@ export default function CrushingCircuitsEdit({
                                                     value={item.percent}
                                                     onChange={(event) =>
                                                         updateYield(item.key, {
-                                                            percent: event.target.value,
+                                                            percent:
+                                                                event.target
+                                                                    .value,
                                                         })
                                                     }
                                                 />
                                                 <InputError
-                                                    message={errors[`yields.${index}.percent`]}
+                                                    message={
+                                                        errors[
+                                                            `yields.${index}.percent`
+                                                        ]
+                                                    }
                                                 />
                                             </div>
 
@@ -268,7 +309,9 @@ export default function CrushingCircuitsEdit({
                                                     value={item.percent_min}
                                                     onChange={(event) =>
                                                         updateYield(item.key, {
-                                                            percent_min: event.target.value,
+                                                            percent_min:
+                                                                event.target
+                                                                    .value,
                                                         })
                                                     }
                                                 />
@@ -285,7 +328,9 @@ export default function CrushingCircuitsEdit({
                                                     value={item.percent_max}
                                                     onChange={(event) =>
                                                         updateYield(item.key, {
-                                                            percent_max: event.target.value,
+                                                            percent_max:
+                                                                event.target
+                                                                    .value,
                                                         })
                                                     }
                                                 />
@@ -296,7 +341,9 @@ export default function CrushingCircuitsEdit({
                                                     type="button"
                                                     variant="ghost"
                                                     size="icon"
-                                                    onClick={() => removeYield(item.key)}
+                                                    onClick={() =>
+                                                        removeYield(item.key)
+                                                    }
                                                     aria-label="Remover produto"
                                                 >
                                                     <Trash2 className="size-4" />
@@ -307,14 +354,18 @@ export default function CrushingCircuitsEdit({
 
                                     {yields.length === 0 && (
                                         <p className="rounded-md border border-dashed px-3 py-6 text-center text-sm text-muted-foreground">
-                                            Adicione os produtos do circuito e os percentuais médios.
+                                            Adicione os produtos do circuito e
+                                            os percentuais médios.
                                         </p>
                                     )}
                                 </div>
                             </div>
 
                             <div className="flex gap-2">
-                                <Button type="submit" disabled={processing || yields.length === 0}>
+                                <Button
+                                    type="submit"
+                                    disabled={processing || yields.length === 0}
+                                >
                                     Salvar circuito
                                 </Button>
                             </div>

@@ -4,8 +4,8 @@ namespace Tests\Feature;
 
 use App\Enums\OrderStatus;
 use App\Enums\Permission;
-use App\Enums\ProductUnit;
 use App\Enums\ProductionStage;
+use App\Enums\ProductUnit;
 use App\Models\CrushingCircuit;
 use App\Models\Order;
 use App\Models\Product;

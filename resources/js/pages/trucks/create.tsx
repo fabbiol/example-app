@@ -18,23 +18,38 @@ export default function TrucksCreate() {
                     description="Cadastre a capacidade da caçamba usada nas viagens da lavra"
                 />
 
-                <Form {...TruckController.store.form()} className="max-w-xl space-y-6">
+                <Form
+                    {...TruckController.store.form()}
+                    className="max-w-xl space-y-6"
+                >
                     {({ errors, processing }) => (
                         <>
                             <div className="grid gap-2">
                                 <Label htmlFor="name">Nome</Label>
-                                <Input id="name" name="name" required placeholder="Basculante 01" />
+                                <Input
+                                    id="name"
+                                    name="name"
+                                    required
+                                    placeholder="Basculante 01"
+                                />
                                 <InputError message={errors.name} />
                             </div>
 
                             <div className="grid gap-2">
                                 <Label htmlFor="plate">Placa</Label>
-                                <Input id="plate" name="plate" required placeholder="LAV-0001" />
+                                <Input
+                                    id="plate"
+                                    name="plate"
+                                    required
+                                    placeholder="LAV-0001"
+                                />
                                 <InputError message={errors.plate} />
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="capacity_m3">Capacidade da caçamba (m³)</Label>
+                                <Label htmlFor="capacity_m3">
+                                    Capacidade da caçamba (m³)
+                                </Label>
                                 <Input
                                     id="capacity_m3"
                                     name="capacity_m3"

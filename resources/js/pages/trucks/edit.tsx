@@ -45,7 +45,9 @@ export default function TrucksEdit({ truck }: { truck: Truck }) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="capacity_m3">Capacidade da caçamba (m³)</Label>
+                                <Label htmlFor="capacity_m3">
+                                    Capacidade da caçamba (m³)
+                                </Label>
                                 <Input
                                     id="capacity_m3"
                                     name="capacity_m3"
@@ -67,7 +69,9 @@ export default function TrucksEdit({ truck }: { truck: Truck }) {
                                     defaultChecked={truck.is_active}
                                     className="size-4 rounded border border-input"
                                 />
-                                <Label htmlFor="is_active">Caminhão ativo</Label>
+                                <Label htmlFor="is_active">
+                                    Caminhão ativo
+                                </Label>
                             </div>
 
                             <div className="grid gap-2">

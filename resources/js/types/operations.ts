@@ -45,11 +45,7 @@ export type Customer = {
 };
 
 export type OrderStatus =
-    | 'open'
-    | 'scheduled'
-    | 'loading'
-    | 'completed'
-    | 'cancelled';
+    'open' | 'scheduled' | 'loading' | 'completed' | 'cancelled';
 
 export type Order = {
     id: number;
@@ -180,11 +176,7 @@ export type Truck = {
 export type ActivityDomain = 'operational' | 'administrative';
 
 export type ActivityAction =
-    | 'created'
-    | 'updated'
-    | 'deleted'
-    | 'logged_in'
-    | 'logged_out';
+    'created' | 'updated' | 'deleted' | 'logged_in' | 'logged_out';
 
 export type ActivityLog = {
     id: number;

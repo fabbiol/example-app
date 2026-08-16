@@ -19,7 +19,11 @@ export default function CustomersShow({
                 <div className="flex items-start justify-between gap-4">
                     <Heading
                         title={customer.name}
-                        description={customer.marketup_code ? `MarketUp ${customer.marketup_code}` : undefined}
+                        description={
+                            customer.marketup_code
+                                ? `MarketUp ${customer.marketup_code}`
+                                : undefined
+                        }
                     />
                     <Button asChild>
                         <Link href={edit(customer.id)}>Editar</Link>
@@ -28,23 +32,35 @@ export default function CustomersShow({
 
                 <dl className="grid gap-4 rounded-xl border p-4 sm:grid-cols-2">
                     <div>
-                        <dt className="text-sm text-muted-foreground">Documento</dt>
+                        <dt className="text-sm text-muted-foreground">
+                            Documento
+                        </dt>
                         <dd>{customer.document || '—'}</dd>
                     </div>
                     <div>
-                        <dt className="text-sm text-muted-foreground">Telefone</dt>
+                        <dt className="text-sm text-muted-foreground">
+                            Telefone
+                        </dt>
                         <dd>{customer.phone || '—'}</dd>
                     </div>
                     <div>
-                        <dt className="text-sm text-muted-foreground">Status</dt>
+                        <dt className="text-sm text-muted-foreground">
+                            Status
+                        </dt>
                         <dd className="mt-1">
-                            <Badge variant={customer.is_active ? 'default' : 'secondary'}>
+                            <Badge
+                                variant={
+                                    customer.is_active ? 'default' : 'secondary'
+                                }
+                            >
                                 {customer.is_active ? 'Ativo' : 'Inativo'}
                             </Badge>
                         </dd>
                     </div>
                     <div>
-                        <dt className="text-sm text-muted-foreground">Observações</dt>
+                        <dt className="text-sm text-muted-foreground">
+                            Observações
+                        </dt>
                         <dd>{customer.notes || '—'}</dd>
                     </div>
                 </dl>
@@ -56,17 +72,30 @@ export default function CustomersShow({
                             <thead className="border-b bg-muted/40">
                                 <tr>
                                     <th className="px-4 py-3 font-medium">#</th>
-                                    <th className="px-4 py-3 font-medium">Status</th>
-                                    <th className="px-4 py-3 font-medium">Qtd.</th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Status
+                                    </th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Qtd.
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {(customer.orders ?? []).map((order) => (
-                                    <tr key={order.id} className="border-b last:border-0">
-                                        <td className="px-4 py-3">{order.id}</td>
-                                        <td className="px-4 py-3">{order.status}</td>
+                                    <tr
+                                        key={order.id}
+                                        className="border-b last:border-0"
+                                    >
                                         <td className="px-4 py-3">
-                                            {formatQty(order.quantity_requested)}
+                                            {order.id}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {order.status}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {formatQty(
+                                                order.quantity_requested,
+                                            )}
                                         </td>
                                     </tr>
                                 ))}

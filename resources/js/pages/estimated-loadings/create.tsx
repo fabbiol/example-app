@@ -1,5 +1,5 @@
 import { Form, Head, Link } from '@inertiajs/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import EstimatedLoadingController from '@/actions/App/Http/Controllers/EstimatedLoadingController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
@@ -125,34 +125,6 @@ export default function EstimatedLoadingsCreate({
         };
     }, [selectedOrder]);
 
-    useEffect(() => {
-        if (!selectedOrder || !selectedOrder.product || !orderSummary) {
-            return;
-        }
-
-        const product = selectedOrder.product;
-
-        setBucketCapacity(String(product.bucket_capacity_m3));
-        setInputUnit(product.unit);
-        setVehiclePlate(selectedOrder.vehicle_plate ?? '');
-        setMode('buckets');
-        setBucketsCount(
-            orderSummary.buckets > 0 ? String(orderSummary.buckets) : '',
-        );
-        setQuantityInput(
-            orderSummary.remaining > 0 ? formatQtyInput(orderSummary.remaining) : '',
-        );
-    }, [selectedOrder?.id]);
-
-    useEffect(() => {
-        if (selectedOrder || !selectedProduct) {
-            return;
-        }
-
-        setBucketCapacity(String(selectedProduct.bucket_capacity_m3));
-        setInputUnit(selectedProduct.unit);
-    }, [selectedProduct?.id, selectedOrder]);
-
     const preview = useMemo(() => {
         if (mode === 'buckets') {
             const buckets = Number(bucketsCount);
@@ -208,7 +180,9 @@ export default function EstimatedLoadingsCreate({
                             <input type="hidden" name="mode" value={mode} />
 
                             <div className="grid gap-2">
-                                <Label htmlFor="order_id">Pedido (opcional)</Label>
+                                <Label htmlFor="order_id">
+                                    Pedido (opcional)
+                                </Label>
                                 <select
                                     id="order_id"
                                     name="order_id"
@@ -223,9 +197,52 @@ export default function EstimatedLoadingsCreate({
                                             setQuantityInput('');
                                             setVehiclePlate('');
                                             setBucketCapacity(
-                                                String(defaults.bucket_capacity_m3),
+                                                String(
+                                                    defaults.bucket_capacity_m3,
+                                                ),
                                             );
+
+                                            return;
                                         }
+
+                                        const order = orders.find(
+                                            (item) =>
+                                                String(item.id) === nextOrderId,
+                                        );
+                                        const product = order?.product;
+
+                                        if (!order || !product) {
+                                            return;
+                                        }
+
+                                        const remaining = Math.max(
+                                            0,
+                                            Number(order.quantity_requested) -
+                                                Number(order.quantity_loaded),
+                                        );
+                                        const buckets = suggestedBuckets(
+                                            remaining,
+                                            product.unit,
+                                            Number(product.density),
+                                            Number(product.bucket_capacity_m3),
+                                        );
+
+                                        setBucketCapacity(
+                                            String(product.bucket_capacity_m3),
+                                        );
+                                        setInputUnit(product.unit);
+                                        setVehiclePlate(
+                                            order.vehicle_plate ?? '',
+                                        );
+                                        setMode('buckets');
+                                        setBucketsCount(
+                                            buckets > 0 ? String(buckets) : '',
+                                        );
+                                        setQuantityInput(
+                                            remaining > 0
+                                                ? formatQtyInput(remaining)
+                                                : '',
+                                        );
                                     }}
                                     className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                 >
@@ -238,11 +255,18 @@ export default function EstimatedLoadingsCreate({
                                         );
 
                                         return (
-                                            <option key={order.id} value={order.id}>
-                                                #{order.id} · {order.customer?.name} ·{' '}
+                                            <option
+                                                key={order.id}
+                                                value={order.id}
+                                            >
+                                                #{order.id} ·{' '}
+                                                {order.customer?.name} ·{' '}
                                                 {order.product?.name} · resta{' '}
                                                 {order.product
-                                                    ? formatQtyWithUnit(remaining, order.product.unit)
+                                                    ? formatQtyWithUnit(
+                                                          remaining,
+                                                          order.product.unit,
+                                                      )
                                                     : formatQty(remaining)}
                                             </option>
                                         );
@@ -259,7 +283,7 @@ export default function EstimatedLoadingsCreate({
                                     </p>
                                     <dl className="grid gap-1 text-muted-foreground sm:grid-cols-2">
                                         <div>
-                                            <dt className="text-xs uppercase tracking-wide">
+                                            <dt className="text-xs tracking-wide uppercase">
                                                 Cliente
                                             </dt>
                                             <dd className="text-foreground">
@@ -267,7 +291,7 @@ export default function EstimatedLoadingsCreate({
                                             </dd>
                                         </div>
                                         <div>
-                                            <dt className="text-xs uppercase tracking-wide">
+                                            <dt className="text-xs tracking-wide uppercase">
                                                 Produto
                                             </dt>
                                             <dd className="text-foreground">
@@ -275,7 +299,7 @@ export default function EstimatedLoadingsCreate({
                                             </dd>
                                         </div>
                                         <div>
-                                            <dt className="text-xs uppercase tracking-wide">
+                                            <dt className="text-xs tracking-wide uppercase">
                                                 Solicitado
                                             </dt>
                                             <dd className="text-foreground">
@@ -286,7 +310,7 @@ export default function EstimatedLoadingsCreate({
                                             </dd>
                                         </div>
                                         <div>
-                                            <dt className="text-xs uppercase tracking-wide">
+                                            <dt className="text-xs tracking-wide uppercase">
                                                 Já carregado
                                             </dt>
                                             <dd className="text-foreground">
@@ -297,7 +321,7 @@ export default function EstimatedLoadingsCreate({
                                             </dd>
                                         </div>
                                         <div>
-                                            <dt className="text-xs uppercase tracking-wide">
+                                            <dt className="text-xs tracking-wide uppercase">
                                                 Restante
                                             </dt>
                                             <dd className="font-medium text-foreground">
@@ -306,22 +330,32 @@ export default function EstimatedLoadingsCreate({
                                                     orderSummary.unit,
                                                 )}
                                                 <span className="ml-1 font-normal text-muted-foreground">
-                                                    ({formatQty(orderSummary.remainingM3)} m³ ≈{' '}
-                                                    {formatQty(orderSummary.remainingTon)} t)
+                                                    (
+                                                    {formatQty(
+                                                        orderSummary.remainingM3,
+                                                    )}{' '}
+                                                    m³ ≈{' '}
+                                                    {formatQty(
+                                                        orderSummary.remainingTon,
+                                                    )}{' '}
+                                                    t)
                                                 </span>
                                             </dd>
                                         </div>
                                         <div>
-                                            <dt className="text-xs uppercase tracking-wide">
+                                            <dt className="text-xs tracking-wide uppercase">
                                                 Conchas sugeridas
                                             </dt>
                                             <dd className="font-medium text-foreground">
                                                 {orderSummary.buckets} ×{' '}
-                                                {formatQty(orderSummary.capacity)} m³
+                                                {formatQty(
+                                                    orderSummary.capacity,
+                                                )}{' '}
+                                                m³
                                             </dd>
                                         </div>
                                         <div>
-                                            <dt className="text-xs uppercase tracking-wide">
+                                            <dt className="text-xs tracking-wide uppercase">
                                                 Estoque atual
                                             </dt>
                                             <dd className="text-foreground">
@@ -333,7 +367,7 @@ export default function EstimatedLoadingsCreate({
                                         </div>
                                         {selectedOrder.destination && (
                                             <div>
-                                                <dt className="text-xs uppercase tracking-wide">
+                                                <dt className="text-xs tracking-wide uppercase">
                                                     Destino
                                                 </dt>
                                                 <dd className="text-foreground">
@@ -348,7 +382,9 @@ export default function EstimatedLoadingsCreate({
                             {!selectedOrder && (
                                 <>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="customer_id">Cliente</Label>
+                                        <Label htmlFor="customer_id">
+                                            Cliente
+                                        </Label>
                                         <select
                                             id="customer_id"
                                             name="customer_id"
@@ -360,31 +396,64 @@ export default function EstimatedLoadingsCreate({
                                                 Selecione
                                             </option>
                                             {customers.map((customer) => (
-                                                <option key={customer.id} value={customer.id}>
+                                                <option
+                                                    key={customer.id}
+                                                    value={customer.id}
+                                                >
                                                     {customer.name}
                                                 </option>
                                             ))}
                                         </select>
-                                        <InputError message={errors.customer_id} />
+                                        <InputError
+                                            message={errors.customer_id}
+                                        />
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <Label htmlFor="product_id">Produto</Label>
+                                        <Label htmlFor="product_id">
+                                            Produto
+                                        </Label>
                                         <select
                                             id="product_id"
                                             name="product_id"
                                             required
                                             value={productId}
-                                            onChange={(event) =>
-                                                setProductId(event.target.value)
-                                            }
+                                            onChange={(event) => {
+                                                const nextProductId =
+                                                    event.target.value;
+                                                setProductId(nextProductId);
+
+                                                if (orderId) {
+                                                    return;
+                                                }
+
+                                                const product = products.find(
+                                                    (item) =>
+                                                        String(item.id) ===
+                                                        nextProductId,
+                                                );
+
+                                                if (!product) {
+                                                    return;
+                                                }
+
+                                                setBucketCapacity(
+                                                    String(
+                                                        product.bucket_capacity_m3,
+                                                    ),
+                                                );
+                                                setInputUnit(product.unit);
+                                            }}
                                             className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                         >
                                             <option value="" disabled>
                                                 Selecione
                                             </option>
                                             {products.map((product) => (
-                                                <option key={product.id} value={product.id}>
+                                                <option
+                                                    key={product.id}
+                                                    value={product.id}
+                                                >
                                                     {product.name} (
                                                     {formatQtyWithUnit(
                                                         product.stock_quantity,
@@ -394,15 +463,19 @@ export default function EstimatedLoadingsCreate({
                                                 </option>
                                             ))}
                                         </select>
-                                        <InputError message={errors.product_id} />
+                                        <InputError
+                                            message={errors.product_id}
+                                        />
                                     </div>
                                 </>
                             )}
 
                             {selectedProduct && !selectedOrder && (
                                 <p className="rounded-md border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-                                    {selectedProduct.name}: densidade {selectedProduct.density}{' '}
-                                    t/m³ · concha padrão {selectedProduct.bucket_capacity_m3} m³
+                                    {selectedProduct.name}: densidade{' '}
+                                    {selectedProduct.density} t/m³ · concha
+                                    padrão {selectedProduct.bucket_capacity_m3}{' '}
+                                    m³
                                 </p>
                             )}
 
@@ -411,14 +484,22 @@ export default function EstimatedLoadingsCreate({
                                 <div className="flex gap-2">
                                     <Button
                                         type="button"
-                                        variant={mode === 'buckets' ? 'default' : 'outline'}
+                                        variant={
+                                            mode === 'buckets'
+                                                ? 'default'
+                                                : 'outline'
+                                        }
                                         onClick={() => setMode('buckets')}
                                     >
                                         Por conchas
                                     </Button>
                                     <Button
                                         type="button"
-                                        variant={mode === 'quantity' ? 'default' : 'outline'}
+                                        variant={
+                                            mode === 'quantity'
+                                                ? 'default'
+                                                : 'outline'
+                                        }
                                         onClick={() => setMode('quantity')}
                                     >
                                         Por quantidade
@@ -429,7 +510,9 @@ export default function EstimatedLoadingsCreate({
                             {mode === 'buckets' ? (
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="grid gap-2">
-                                        <Label htmlFor="buckets_count">Nº de conchas</Label>
+                                        <Label htmlFor="buckets_count">
+                                            Nº de conchas
+                                        </Label>
                                         <Input
                                             id="buckets_count"
                                             name="buckets_count"
@@ -438,10 +521,14 @@ export default function EstimatedLoadingsCreate({
                                             required
                                             value={bucketsCount}
                                             onChange={(event) =>
-                                                setBucketsCount(event.target.value)
+                                                setBucketsCount(
+                                                    event.target.value,
+                                                )
                                             }
                                         />
-                                        <InputError message={errors.buckets_count} />
+                                        <InputError
+                                            message={errors.buckets_count}
+                                        />
                                     </div>
                                     <div className="grid gap-2">
                                         <Label htmlFor="bucket_capacity_m3">
@@ -456,35 +543,51 @@ export default function EstimatedLoadingsCreate({
                                             required
                                             value={bucketCapacity}
                                             onChange={(event) =>
-                                                setBucketCapacity(event.target.value)
+                                                setBucketCapacity(
+                                                    event.target.value,
+                                                )
                                             }
                                         />
-                                        <InputError message={errors.bucket_capacity_m3} />
+                                        <InputError
+                                            message={errors.bucket_capacity_m3}
+                                        />
                                     </div>
                                 </div>
                             ) : (
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="grid gap-2">
-                                        <Label htmlFor="input_unit">Unidade informada</Label>
+                                        <Label htmlFor="input_unit">
+                                            Unidade informada
+                                        </Label>
                                         <select
                                             id="input_unit"
                                             name="input_unit"
                                             value={inputUnit}
                                             onChange={(event) =>
-                                                setInputUnit(event.target.value as 'm3' | 'ton')
+                                                setInputUnit(
+                                                    event.target.value as
+                                                        'm3' | 'ton',
+                                                )
                                             }
                                             className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                         >
                                             {units.map((unit) => (
-                                                <option key={unit.value} value={unit.value}>
+                                                <option
+                                                    key={unit.value}
+                                                    value={unit.value}
+                                                >
                                                     {unit.label}
                                                 </option>
                                             ))}
                                         </select>
-                                        <InputError message={errors.input_unit} />
+                                        <InputError
+                                            message={errors.input_unit}
+                                        />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="quantity_input">Quantidade</Label>
+                                        <Label htmlFor="quantity_input">
+                                            Quantidade
+                                        </Label>
                                         <Input
                                             id="quantity_input"
                                             name="quantity_input"
@@ -494,22 +597,30 @@ export default function EstimatedLoadingsCreate({
                                             required
                                             value={quantityInput}
                                             onChange={(event) =>
-                                                setQuantityInput(event.target.value)
+                                                setQuantityInput(
+                                                    event.target.value,
+                                                )
                                             }
                                         />
-                                        <InputError message={errors.quantity_input} />
+                                        <InputError
+                                            message={errors.quantity_input}
+                                        />
                                     </div>
                                 </div>
                             )}
 
                             {preview && (
                                 <div className="rounded-md border bg-muted/30 px-3 py-3 text-sm">
-                                    <p className="font-medium">Prévia da conversão</p>
-                                    <p className="mt-1 text-muted-foreground">
-                                        {preview.m3} m³ ≈ {preview.ton} t (densidade {density})
+                                    <p className="font-medium">
+                                        Prévia da conversão
                                     </p>
                                     <p className="mt-1 text-muted-foreground">
-                                        O estoque e o pedido serão baixados na unidade do produto.
+                                        {preview.m3} m³ ≈ {preview.ton} t
+                                        (densidade {density})
+                                    </p>
+                                    <p className="mt-1 text-muted-foreground">
+                                        O estoque e o pedido serão baixados na
+                                        unidade do produto.
                                     </p>
                                 </div>
                             )}
@@ -521,14 +632,20 @@ export default function EstimatedLoadingsCreate({
                                     name="vehicle_plate"
                                     required
                                     value={vehiclePlate}
-                                    onChange={(event) => setVehiclePlate(event.target.value)}
+                                    onChange={(event) =>
+                                        setVehiclePlate(event.target.value)
+                                    }
                                 />
                                 <InputError message={errors.vehicle_plate} />
                             </div>
 
                             <div className="grid gap-2">
                                 <Label htmlFor="loaded_at">Data/hora</Label>
-                                <Input id="loaded_at" name="loaded_at" type="datetime-local" />
+                                <Input
+                                    id="loaded_at"
+                                    name="loaded_at"
+                                    type="datetime-local"
+                                />
                                 <InputError message={errors.loaded_at} />
                             </div>
 

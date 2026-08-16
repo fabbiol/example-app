@@ -9,11 +9,7 @@ import { Button } from '@/components/ui/button';
 import { create, edit, index } from '@/routes/users';
 import type { Paginated, User } from '@/types';
 
-export default function UsersIndex({
-    users,
-}: {
-    users: Paginated<User>;
-}) {
+export default function UsersIndex({ users }: { users: Paginated<User> }) {
     return (
         <>
             <Head title="Pessoas" />
@@ -39,16 +35,25 @@ export default function UsersIndex({
                         <thead className="border-b bg-muted/40">
                             <tr>
                                 <th className="px-4 py-3 font-medium">Nome</th>
-                                <th className="px-4 py-3 font-medium">E-mail</th>
+                                <th className="px-4 py-3 font-medium">
+                                    E-mail
+                                </th>
                                 <th className="px-4 py-3 font-medium">Papel</th>
                                 <th className="px-4 py-3 font-medium" />
                             </tr>
                         </thead>
                         <tbody>
                             {users.data.map((person) => (
-                                <tr key={person.id} className="border-b last:border-0">
-                                    <td className="px-4 py-3 font-medium">{person.name}</td>
-                                    <td className="px-4 py-3">{person.email}</td>
+                                <tr
+                                    key={person.id}
+                                    className="border-b last:border-0"
+                                >
+                                    <td className="px-4 py-3 font-medium">
+                                        {person.name}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {person.email}
+                                    </td>
                                     <td className="px-4 py-3">
                                         <Badge
                                             variant={
@@ -62,12 +67,22 @@ export default function UsersIndex({
                                     </td>
                                     <td className="px-4 py-3">
                                         <div className="flex justify-end gap-2">
-                                            <Button variant="outline" size="sm" asChild>
-                                                <Link href={edit(person.id)}>Editar</Link>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                asChild
+                                            >
+                                                <Link href={edit(person.id)}>
+                                                    Editar
+                                                </Link>
                                             </Button>
                                             <Form
-                                                {...UserController.destroy.form(person.id)}
-                                                options={{ preserveScroll: true }}
+                                                {...UserController.destroy.form(
+                                                    person.id,
+                                                )}
+                                                options={{
+                                                    preserveScroll: true,
+                                                }}
                                             >
                                                 {({ processing }) => (
                                                     <Button

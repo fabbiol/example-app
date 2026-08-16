@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
-use App\Enums\ProductUnit;
 use App\Enums\ProductionMethod;
 use App\Enums\ProductionShift;
 use App\Enums\ProductionStage;
+use App\Enums\ProductUnit;
 use App\Models\CrushingCircuit;
 use App\Models\Product;
 use App\Models\ProductionEntry;

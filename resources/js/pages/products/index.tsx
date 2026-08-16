@@ -1,17 +1,15 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import ProductController from '@/actions/App/Http/Controllers/ProductController';
 import FlashMessage from '@/components/flash-message';
 import Heading from '@/components/heading';
 import Pagination from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useStoredDisplayUnit } from '@/hooks/use-stored-display-unit';
 import { formatQty, toDisplayUnit, unitLabel } from '@/lib/quantity';
 import { create, edit, index, show } from '@/routes/products';
 import type { Paginated, Product } from '@/types';
-
-type DisplayUnit = 'm3' | 'ton';
 
 const STORAGE_KEY = 'products.display_unit';
 
@@ -20,20 +18,7 @@ export default function ProductsIndex({
 }: {
     products: Paginated<Product>;
 }) {
-    const [displayUnit, setDisplayUnit] = useState<DisplayUnit>('m3');
-
-    useEffect(() => {
-        const saved = window.localStorage.getItem(STORAGE_KEY);
-
-        if (saved === 'm3' || saved === 'ton') {
-            setDisplayUnit(saved);
-        }
-    }, []);
-
-    const changeUnit = (unit: DisplayUnit) => {
-        setDisplayUnit(unit);
-        window.localStorage.setItem(STORAGE_KEY, unit);
-    };
+    const [displayUnit, changeUnit] = useStoredDisplayUnit(STORAGE_KEY);
 
     return (
         <>
@@ -50,7 +35,9 @@ export default function ProductsIndex({
                             <Button
                                 type="button"
                                 size="sm"
-                                variant={displayUnit === 'm3' ? 'default' : 'ghost'}
+                                variant={
+                                    displayUnit === 'm3' ? 'default' : 'ghost'
+                                }
                                 onClick={() => changeUnit('m3')}
                             >
                                 m³
@@ -58,7 +45,9 @@ export default function ProductsIndex({
                             <Button
                                 type="button"
                                 size="sm"
-                                variant={displayUnit === 'ton' ? 'default' : 'ghost'}
+                                variant={
+                                    displayUnit === 'ton' ? 'default' : 'ghost'
+                                }
                                 onClick={() => changeUnit('ton')}
                             >
                                 t
@@ -79,12 +68,16 @@ export default function ProductsIndex({
                     <table className="w-full min-w-[640px] text-left text-sm">
                         <thead className="border-b bg-muted/40">
                             <tr>
-                                <th className="px-4 py-3 font-medium">Código</th>
+                                <th className="px-4 py-3 font-medium">
+                                    Código
+                                </th>
                                 <th className="px-4 py-3 font-medium">Nome</th>
                                 <th className="px-4 py-3 font-medium">
                                     Estoque ({unitLabel(displayUnit)})
                                 </th>
-                                <th className="px-4 py-3 font-medium">Status</th>
+                                <th className="px-4 py-3 font-medium">
+                                    Status
+                                </th>
                                 <th className="px-4 py-3 font-medium" />
                             </tr>
                         </thead>
@@ -98,41 +91,73 @@ export default function ProductsIndex({
                                 );
 
                                 return (
-                                    <tr key={product.id} className="border-b last:border-0">
+                                    <tr
+                                        key={product.id}
+                                        className="border-b last:border-0"
+                                    >
                                         <td className="px-4 py-3 font-mono text-xs">
                                             {product.code}
                                         </td>
-                                        <td className="px-4 py-3">{product.name}</td>
+                                        <td className="px-4 py-3">
+                                            {product.name}
+                                        </td>
                                         <td className="px-4 py-3 font-medium">
-                                            {formatQty(qty)} {unitLabel(displayUnit)}
+                                            {formatQty(qty)}{' '}
+                                            {unitLabel(displayUnit)}
                                         </td>
                                         <td className="px-4 py-3">
                                             <Badge
                                                 variant={
-                                                    product.is_active ? 'default' : 'secondary'
+                                                    product.is_active
+                                                        ? 'default'
+                                                        : 'secondary'
                                                 }
                                             >
-                                                {product.is_active ? 'Ativo' : 'Inativo'}
+                                                {product.is_active
+                                                    ? 'Ativo'
+                                                    : 'Inativo'}
                                             </Badge>
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex justify-end gap-2">
-                                                <Button variant="outline" size="sm" asChild>
-                                                    <Link href={show(product.id)}>Ver</Link>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    asChild
+                                                >
+                                                    <Link
+                                                        href={show(product.id)}
+                                                    >
+                                                        Ver
+                                                    </Link>
                                                 </Button>
-                                                <Button variant="outline" size="sm" asChild>
-                                                    <Link href={edit(product.id)}>Editar</Link>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    asChild
+                                                >
+                                                    <Link
+                                                        href={edit(product.id)}
+                                                    >
+                                                        Editar
+                                                    </Link>
                                                 </Button>
                                                 <Form
-                                                    {...ProductController.destroy.form(product.id)}
-                                                    options={{ preserveScroll: true }}
+                                                    {...ProductController.destroy.form(
+                                                        product.id,
+                                                    )}
+                                                    options={{
+                                                        preserveScroll: true,
+                                                    }}
                                                 >
                                                     {({ processing }) => (
                                                         <Button
                                                             type="submit"
                                                             variant="destructive"
                                                             size="sm"
-                                                            disabled={processing}
+                                                            disabled={
+                                                                processing
+                                                            }
                                                         >
                                                             Excluir
                                                         </Button>

@@ -1,14 +1,12 @@
 import { Head, Link } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useStoredDisplayUnit } from '@/hooks/use-stored-display-unit';
 import { formatQty, toDisplayUnit, unitLabel } from '@/lib/quantity';
 import { edit, index } from '@/routes/orders';
 import { create as createTicket } from '@/routes/weigh-tickets';
 import type { Order, OrderStatus, WeighTicket } from '@/types';
-
-type DisplayUnit = 'm3' | 'ton';
 
 const STORAGE_KEY = 'orders.display_unit';
 
@@ -27,20 +25,7 @@ export default function OrdersShow({
     order: Order & { weigh_tickets?: WeighTicket[] };
     remainingQuantity: string;
 }) {
-    const [displayUnit, setDisplayUnit] = useState<DisplayUnit>('m3');
-
-    useEffect(() => {
-        const saved = window.localStorage.getItem(STORAGE_KEY);
-
-        if (saved === 'm3' || saved === 'ton') {
-            setDisplayUnit(saved);
-        }
-    }, []);
-
-    const changeUnit = (unit: DisplayUnit) => {
-        setDisplayUnit(unit);
-        window.localStorage.setItem(STORAGE_KEY, unit);
-    };
+    const [displayUnit, changeUnit] = useStoredDisplayUnit(STORAGE_KEY);
 
     const productUnit = order.product?.unit ?? 'ton';
     const density = Number(order.product?.density ?? 1.45);
@@ -50,7 +35,12 @@ export default function OrdersShow({
         density,
         displayUnit,
     );
-    const loaded = toDisplayUnit(Number(order.quantity_loaded), productUnit, density, displayUnit);
+    const loaded = toDisplayUnit(
+        Number(order.quantity_loaded),
+        productUnit,
+        density,
+        displayUnit,
+    );
     const remaining = toDisplayUnit(
         Number(remainingQuantity),
         productUnit,
@@ -73,7 +63,9 @@ export default function OrdersShow({
                             <Button
                                 type="button"
                                 size="sm"
-                                variant={displayUnit === 'm3' ? 'default' : 'ghost'}
+                                variant={
+                                    displayUnit === 'm3' ? 'default' : 'ghost'
+                                }
                                 onClick={() => changeUnit('m3')}
                             >
                                 m³
@@ -81,7 +73,9 @@ export default function OrdersShow({
                             <Button
                                 type="button"
                                 size="sm"
-                                variant={displayUnit === 'ton' ? 'default' : 'ghost'}
+                                variant={
+                                    displayUnit === 'ton' ? 'default' : 'ghost'
+                                }
                                 onClick={() => changeUnit('ton')}
                             >
                                 t
@@ -98,9 +92,13 @@ export default function OrdersShow({
 
                 <dl className="grid gap-4 rounded-xl border p-4 sm:grid-cols-3">
                     <div>
-                        <dt className="text-sm text-muted-foreground">Status</dt>
+                        <dt className="text-sm text-muted-foreground">
+                            Status
+                        </dt>
                         <dd className="mt-1">
-                            <Badge variant="secondary">{statusLabel[order.status]}</Badge>
+                            <Badge variant="secondary">
+                                {statusLabel[order.status]}
+                            </Badge>
                         </dd>
                     </div>
                     <div>
@@ -132,7 +130,9 @@ export default function OrdersShow({
                         <dd>{order.vehicle_plate || '—'}</dd>
                     </div>
                     <div>
-                        <dt className="text-sm text-muted-foreground">Destino</dt>
+                        <dt className="text-sm text-muted-foreground">
+                            Destino
+                        </dt>
                         <dd>{order.destination || '—'}</dd>
                     </div>
                 </dl>
@@ -143,12 +143,18 @@ export default function OrdersShow({
                         <table className="w-full text-left text-sm">
                             <thead className="border-b bg-muted/40">
                                 <tr>
-                                    <th className="px-4 py-3 font-medium">Número</th>
-                                    <th className="px-4 py-3 font-medium">Placa</th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Número
+                                    </th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Placa
+                                    </th>
                                     <th className="px-4 py-3 font-medium">
                                         Líquido ({unitLabel(displayUnit)})
                                     </th>
-                                    <th className="px-4 py-3 font-medium">Data</th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Data
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -157,23 +163,31 @@ export default function OrdersShow({
                                         displayUnit === 'm3'
                                             ? Number(
                                                   ticket.quantity_m3 ??
-                                                      Number(ticket.net_weight) / density,
+                                                      Number(
+                                                          ticket.net_weight,
+                                                      ) / density,
                                               )
                                             : Number(ticket.net_weight);
 
                                     return (
-                                        <tr key={ticket.id} className="border-b last:border-0">
+                                        <tr
+                                            key={ticket.id}
+                                            className="border-b last:border-0"
+                                        >
                                             <td className="px-4 py-3 font-mono text-xs">
                                                 {ticket.number}
                                             </td>
-                                            <td className="px-4 py-3">{ticket.vehicle_plate}</td>
+                                            <td className="px-4 py-3">
+                                                {ticket.vehicle_plate}
+                                            </td>
                                             <td className="px-4 py-3 font-medium">
-                                                {formatQty(qty)} {unitLabel(displayUnit)}
+                                                {formatQty(qty)}{' '}
+                                                {unitLabel(displayUnit)}
                                             </td>
                                             <td className="px-4 py-3">
-                                                {new Date(ticket.weighed_at).toLocaleString(
-                                                    'pt-BR',
-                                                )}
+                                                {new Date(
+                                                    ticket.weighed_at,
+                                                ).toLocaleString('pt-BR')}
                                             </td>
                                         </tr>
                                     );

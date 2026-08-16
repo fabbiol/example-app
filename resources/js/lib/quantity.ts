@@ -36,7 +36,9 @@ export function formatQtyInput(value: number, fractionDigits = 3): string {
     return rounded.toFixed(fractionDigits);
 }
 
-export function unitLabel(unit: QuantityUnit | string | null | undefined): string {
+export function unitLabel(
+    unit: QuantityUnit | string | null | undefined,
+): string {
     if (unit === 'm3') {
         return 'm³';
     }

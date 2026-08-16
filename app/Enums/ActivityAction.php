@@ -20,4 +20,18 @@ enum ActivityAction: string
             self::LoggedOut => 'Saiu',
         };
     }
+
+    /**
+     * @return list<array{value: string, label: string}>
+     */
+    public static function options(): array
+    {
+        return array_map(
+            fn (self $action): array => [
+                'value' => $action->value,
+                'label' => $action->label(),
+            ],
+            self::cases(),
+        );
+    }
 }

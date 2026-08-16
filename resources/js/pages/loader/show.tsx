@@ -25,7 +25,12 @@ type LoaderOrder = {
     customer?: { id: number; name: string };
     product?: Pick<
         Product,
-        'id' | 'name' | 'unit' | 'density' | 'bucket_capacity_m3' | 'stock_quantity'
+        | 'id'
+        | 'name'
+        | 'unit'
+        | 'density'
+        | 'bucket_capacity_m3'
+        | 'stock_quantity'
     >;
 };
 
@@ -48,7 +53,9 @@ export default function LoaderShow({ order }: { order: LoaderOrder }) {
     );
 
     const adjust = (delta: number) => {
-        setQuantityM3((current) => round3(Math.min(99999, Math.max(0.5, current + delta))));
+        setQuantityM3((current) =>
+            round3(Math.min(99999, Math.max(0.5, current + delta))),
+        );
     };
 
     return (
@@ -71,15 +78,22 @@ export default function LoaderShow({ order }: { order: LoaderOrder }) {
             <main className="flex flex-1 flex-col gap-4 p-4 pb-36">
                 <div className="grid grid-cols-2 gap-3">
                     <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-stone-200">
-                        <p className="text-xs uppercase tracking-wide text-stone-500">Restante</p>
-                        <p className="text-2xl font-bold">{formatQty(order.remaining_m3)} m³</p>
+                        <p className="text-xs tracking-wide text-stone-500 uppercase">
+                            Restante
+                        </p>
+                        <p className="text-2xl font-bold">
+                            {formatQty(order.remaining_m3)} m³
+                        </p>
                         <p className="mt-1 text-sm text-stone-500">
-                            {formatQty(order.remaining)} {unitLabel(order.product?.unit)} ≈{' '}
+                            {formatQty(order.remaining)}{' '}
+                            {unitLabel(order.product?.unit)} ≈{' '}
                             {formatQty(order.remaining_ton)} t
                         </p>
                     </div>
                     <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-stone-200">
-                        <p className="text-xs uppercase tracking-wide text-stone-500">Estoque</p>
+                        <p className="text-xs tracking-wide text-stone-500 uppercase">
+                            Estoque
+                        </p>
                         <p className="text-2xl font-bold">
                             {formatQty(order.product?.stock_quantity)}{' '}
                             {unitLabel(order.product?.unit)}
@@ -92,7 +106,10 @@ export default function LoaderShow({ order }: { order: LoaderOrder }) {
 
                 {order.destination && (
                     <p className="rounded-xl bg-stone-200/70 px-4 py-3 text-base">
-                        Destino: <span className="font-semibold">{order.destination}</span>
+                        Destino:{' '}
+                        <span className="font-semibold">
+                            {order.destination}
+                        </span>
                     </p>
                 )}
 
@@ -102,13 +119,21 @@ export default function LoaderShow({ order }: { order: LoaderOrder }) {
                 >
                     {({ errors, processing }) => (
                         <>
-                            {(errors.product_id || errors.quantity || errors.order_id) && (
+                            {(errors.product_id ||
+                                errors.quantity ||
+                                errors.order_id) && (
                                 <div className="rounded-2xl border-2 border-red-300 bg-red-50 px-4 py-3 text-base text-red-800">
-                                    {errors.product_id || errors.quantity || errors.order_id}
+                                    {errors.product_id ||
+                                        errors.quantity ||
+                                        errors.order_id}
                                 </div>
                             )}
 
-                            <input type="hidden" name="quantity_m3" value={formatQtyInput(quantityM3)} />
+                            <input
+                                type="hidden"
+                                name="quantity_m3"
+                                value={formatQtyInput(quantityM3)}
+                            />
 
                             <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
                                 <Label className="text-base text-stone-600">
@@ -124,10 +149,12 @@ export default function LoaderShow({ order }: { order: LoaderOrder }) {
                                         <Minus className="size-10" />
                                     </button>
                                     <div className="text-center">
-                                        <p className="text-5xl font-bold tabular-nums leading-none">
+                                        <p className="text-5xl leading-none font-bold tabular-nums">
                                             {formatQty(quantityM3)}
                                         </p>
-                                        <p className="mt-2 text-sm text-stone-500">metros cúbicos</p>
+                                        <p className="mt-2 text-sm text-stone-500">
+                                            metros cúbicos
+                                        </p>
                                     </div>
                                     <button
                                         type="button"
@@ -157,11 +184,14 @@ export default function LoaderShow({ order }: { order: LoaderOrder }) {
                                         Restante
                                     </button>
                                 </div>
-                                <InputError className="mt-2" message={errors.quantity_m3} />
+                                <InputError
+                                    className="mt-2"
+                                    message={errors.quantity_m3}
+                                />
                             </div>
 
                             <div className="rounded-2xl bg-emerald-50 px-4 py-4 text-center ring-1 ring-emerald-200">
-                                <p className="text-sm uppercase tracking-wide text-emerald-800">
+                                <p className="text-sm tracking-wide text-emerald-800 uppercase">
                                     Prévia deste carregamento
                                 </p>
                                 <p className="mt-1 text-2xl font-bold text-emerald-950">
@@ -170,7 +200,10 @@ export default function LoaderShow({ order }: { order: LoaderOrder }) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="vehicle_plate" className="text-base">
+                                <Label
+                                    htmlFor="vehicle_plate"
+                                    className="text-base"
+                                >
                                     Placa do caminhão
                                 </Label>
                                 <Input
@@ -179,7 +212,9 @@ export default function LoaderShow({ order }: { order: LoaderOrder }) {
                                     required
                                     value={plate}
                                     onChange={(event) =>
-                                        setPlate(event.target.value.toUpperCase())
+                                        setPlate(
+                                            event.target.value.toUpperCase(),
+                                        )
                                     }
                                     className="h-14 text-xl uppercase"
                                     autoComplete="off"
@@ -206,7 +241,11 @@ export default function LoaderShow({ order }: { order: LoaderOrder }) {
                                 <div className="mx-auto max-w-3xl">
                                     <Button
                                         type="submit"
-                                        disabled={processing || !plate || quantityM3 <= 0}
+                                        disabled={
+                                            processing ||
+                                            !plate ||
+                                            quantityM3 <= 0
+                                        }
                                         className="h-16 w-full rounded-2xl bg-emerald-700 text-xl font-semibold text-white hover:bg-emerald-800"
                                     >
                                         Confirmar {formatQty(quantityM3)} m³
