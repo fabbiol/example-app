@@ -78,7 +78,7 @@ const mainNavGroups: NavGroup[] = [
                 permission: 'orders',
             },
             {
-                title: 'Fila da pá',
+                title: 'Pá',
                 href: loader(),
                 icon: Shovel,
                 permission: 'loader',

@@ -51,7 +51,7 @@ class RoleManagementTest extends TestCase
                     'permissionGroups.Expedição',
                     fn ($items): bool => collect($items)->pluck('label')->all() === [
                         'Pedidos',
-                        'Fila da pá',
+                        'Pá',
                         'Carregamentos',
                         'Balança',
                     ],

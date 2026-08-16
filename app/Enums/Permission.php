@@ -26,7 +26,7 @@ enum Permission: string
             self::Flow => 'Fluxo',
             self::Activities => 'Atividades',
             self::Orders => 'Pedidos',
-            self::Loader => 'Fila da pá',
+            self::Loader => 'Pá',
             self::EstimatedLoadings => 'Carregamentos',
             self::WeighTickets => 'Balança',
             self::Production => 'Produção',
