@@ -56,8 +56,14 @@ class ActivityLogTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('activities/index')
                 ->where('filters.domain', null)
+                ->where('filters.action', null)
+                ->where('filters.user_id', null)
+                ->where('filters.period', 'all')
                 ->has('activities.data')
-                ->has('domains'));
+                ->has('domains')
+                ->has('actions')
+                ->has('periods')
+                ->has('people'));
     }
 
     public function test_creating_an_order_logs_an_operational_activity(): void
@@ -146,6 +152,81 @@ class ActivityLogTest extends TestCase
                 ->has('activities.data', 2)
                 ->where('activities.data.0.domain', ActivityDomain::Operational->value)
                 ->where('activities.data.1.domain', ActivityDomain::Operational->value));
+    }
+
+    public function test_activities_can_be_filtered_by_action(): void
+    {
+        $admin = User::factory()->create();
+
+        ActivityLog::factory()->create([
+            'action' => ActivityAction::Created,
+            'domain' => ActivityDomain::Operational,
+        ]);
+        ActivityLog::factory()->create([
+            'action' => ActivityAction::Deleted,
+            'domain' => ActivityDomain::Operational,
+            'description' => 'Excluiu o pedido #9',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('activities.index', ['action' => ActivityAction::Deleted->value]))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('filters.action', ActivityAction::Deleted->value)
+                ->has('activities.data', 1)
+                ->where('activities.data.0.action', ActivityAction::Deleted->value)
+                ->where('activities.data.0.description', 'Excluiu o pedido #9'));
+    }
+
+    public function test_activities_can_be_filtered_by_person(): void
+    {
+        $admin = User::factory()->create();
+        $person = User::factory()->create(['name' => 'Carlos Mendes']);
+
+        ActivityLog::factory()->create([
+            'user_id' => $person->id,
+            'domain' => ActivityDomain::Operational,
+            'description' => 'Criou o pedido #4',
+        ]);
+        ActivityLog::factory()->create([
+            'user_id' => $admin->id,
+            'domain' => ActivityDomain::Operational,
+            'description' => 'Criou o pedido #5',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('activities.index', ['user_id' => $person->id]))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('filters.user_id', (string) $person->id)
+                ->has('activities.data', 1)
+                ->where('activities.data.0.user_name', 'Carlos Mendes')
+                ->where('activities.data.0.description', 'Criou o pedido #4'));
+    }
+
+    public function test_activities_can_be_filtered_by_date(): void
+    {
+        $this->freezeTime();
+
+        $admin = User::factory()->create();
+        $todayCount = ActivityLog::query()->whereDate('created_at', now())->count();
+
+        ActivityLog::factory()->create([
+            'user_id' => $admin->id,
+            'domain' => ActivityDomain::Operational,
+            'description' => 'Criou o pedido antigo',
+            'created_at' => now()->subDays(8),
+            'updated_at' => now()->subDays(8),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('activities.index', ['period' => 'today']))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('filters.period', 'today')
+                ->where('filters.from', now()->toDateString())
+                ->where('filters.to', now()->toDateString())
+                ->where('activities.total', $todayCount));
     }
 
     public function test_login_and_logout_are_logged_as_administrative_activities(): void
