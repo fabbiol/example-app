@@ -59,7 +59,13 @@ function StateBox({
     );
 }
 
-function DownArrow({ label, dashed = false }: { label?: string; dashed?: boolean }) {
+function DownArrow({
+    label,
+    dashed = false,
+}: {
+    label?: string;
+    dashed?: boolean;
+}) {
     return (
         <div className="flex flex-col items-center gap-1 py-1">
             {label ? (
@@ -70,7 +76,9 @@ function DownArrow({ label, dashed = false }: { label?: string; dashed?: boolean
             <span
                 className={cn(
                     'h-7 w-px',
-                    dashed ? 'border-l border-dashed border-muted-foreground/60' : 'bg-primary/40',
+                    dashed
+                        ? 'border-l border-dashed border-muted-foreground/60'
+                        : 'bg-primary/40',
                 )}
             />
         </div>
@@ -85,7 +93,10 @@ function volumeLine(ton: string, m3: string): string {
     return `${formatQty(ton)} t · ${formatQty(m3)} m³`;
 }
 
-function orderVolume(phase: OrderPhaseQty, mode: 'remaining' | 'loaded' | 'requested'): string {
+function orderVolume(
+    phase: OrderPhaseQty,
+    mode: 'remaining' | 'loaded' | 'requested',
+): string {
     if (mode === 'loaded') {
         return volumeLine(phase.loaded_ton, phase.loaded_m3);
     }
@@ -123,14 +134,22 @@ export function ExpeditionFlow({
                 <DownArrow label="com data de agendamento" />
                 <StateBox
                     title="Agendado"
-                    count={countLabel(phases.scheduled.orders, 'pedido', 'pedidos')}
+                    count={countLabel(
+                        phases.scheduled.orders,
+                        'pedido',
+                        'pedidos',
+                    )}
                     volume={orderVolume(phases.scheduled, 'remaining')}
                     hint="Na fila da expedição"
                 />
                 <DownArrow label="modo pá, carregamento ou balança" />
                 <StateBox
                     title="Carregando"
-                    count={countLabel(phases.loading.orders, 'pedido', 'pedidos')}
+                    count={countLabel(
+                        phases.loading.orders,
+                        'pedido',
+                        'pedidos',
+                    )}
                     volume={orderVolume(phases.loading, 'remaining')}
                     extra={`Já saiu ${volumeLine(phases.loading.loaded_ton, phases.loading.loaded_m3)}`}
                     hint="Já saiu material, ainda falta"
@@ -138,7 +157,11 @@ export function ExpeditionFlow({
                 <DownArrow label="carregado cobre o pedido (tolerância 0,050)" />
                 <StateBox
                     title="Concluído"
-                    count={countLabel(phases.completed.orders, 'pedido', 'pedidos')}
+                    count={countLabel(
+                        phases.completed.orders,
+                        'pedido',
+                        'pedidos',
+                    )}
                     volume={orderVolume(phases.completed, 'loaded')}
                     hint="Saiu da fila"
                     tone="end"
@@ -148,7 +171,11 @@ export function ExpeditionFlow({
             <div className="flex flex-col items-center justify-center gap-3 lg:border-l lg:pl-8">
                 <StateBox
                     title="Cancelado"
-                    count={countLabel(phases.cancelled.orders, 'pedido', 'pedidos')}
+                    count={countLabel(
+                        phases.cancelled.orders,
+                        'pedido',
+                        'pedidos',
+                    )}
                     volume={orderVolume(phases.cancelled, 'requested')}
                     hint="Fora da fila"
                     tone="abort"
@@ -162,11 +189,7 @@ export function ExpeditionFlow({
     );
 }
 
-export function YardFlow({
-    phases,
-}: {
-    phases: Record<string, YardPhaseQty>;
-}) {
+export function YardFlow({ phases }: { phases: Record<string, YardPhaseQty> }) {
     return (
         <div className="flex flex-col items-center">
             <StateBox

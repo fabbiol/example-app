@@ -6,12 +6,20 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { formatQty, formatQtyInput, toDisplayUnit, unitLabel } from '@/lib/quantity';
+import {
+    formatQty,
+    formatQtyInput,
+    toDisplayUnit,
+    unitLabel,
+} from '@/lib/quantity';
 import { index } from '@/routes/orders';
 import type { Option, Order, Product } from '@/types';
 
 type CustomerOption = { id: number; name: string };
-type ProductOption = Pick<Product, 'id' | 'name' | 'unit' | 'density' | 'stock_quantity'>;
+type ProductOption = Pick<
+    Product,
+    'id' | 'name' | 'unit' | 'density' | 'stock_quantity'
+>;
 
 export default function OrdersEdit({
     order,
@@ -26,13 +34,16 @@ export default function OrdersEdit({
     units: Option[];
     statuses: Option[];
 }) {
-    const scheduledAt = order.scheduled_at ? order.scheduled_at.slice(0, 16) : '';
+    const scheduledAt = order.scheduled_at
+        ? order.scheduled_at.slice(0, 16)
+        : '';
     const [productId, setProductId] = useState(String(order.product_id));
     const [inputUnit, setInputUnit] = useState<'m3' | 'ton'>(
         order.product?.unit === 'm3' ? 'm3' : 'm3',
     );
     const [quantityInput, setQuantityInput] = useState(() => {
         const product = order.product;
+
         if (!product) {
             return order.quantity_requested;
         }
@@ -48,7 +59,8 @@ export default function OrdersEdit({
     });
 
     const selectedProduct =
-        products.find((product) => String(product.id) === productId) ?? order.product;
+        products.find((product) => String(product.id) === productId) ??
+        order.product;
     const density = selectedProduct ? Number(selectedProduct.density) : 1.45;
 
     const preview = useMemo(() => {
@@ -105,7 +117,10 @@ export default function OrdersEdit({
                                     className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                 >
                                     {customers.map((customer) => (
-                                        <option key={customer.id} value={customer.id}>
+                                        <option
+                                            key={customer.id}
+                                            value={customer.id}
+                                        >
                                             {customer.name}
                                         </option>
                                     ))}
@@ -114,18 +129,25 @@ export default function OrdersEdit({
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="input_unit">Unidade estimada</Label>
+                                <Label htmlFor="input_unit">
+                                    Unidade estimada
+                                </Label>
                                 <select
                                     id="input_unit"
                                     name="input_unit"
                                     value={inputUnit}
                                     onChange={(event) =>
-                                        setInputUnit(event.target.value as 'm3' | 'ton')
+                                        setInputUnit(
+                                            event.target.value as 'm3' | 'ton',
+                                        )
                                     }
                                     className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                 >
                                     {units.map((unit) => (
-                                        <option key={unit.value} value={unit.value}>
+                                        <option
+                                            key={unit.value}
+                                            value={unit.value}
+                                        >
                                             {unit.label}
                                         </option>
                                     ))}
@@ -142,7 +164,9 @@ export default function OrdersEdit({
                                     name="product_id"
                                     required
                                     value={productId}
-                                    onChange={(event) => setProductId(event.target.value)}
+                                    onChange={(event) =>
+                                        setProductId(event.target.value)
+                                    }
                                     className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                 >
                                     {products.map((product) => {
@@ -154,8 +178,12 @@ export default function OrdersEdit({
                                         );
 
                                         return (
-                                            <option key={product.id} value={product.id}>
-                                                {product.name} ({formatQty(displayStock)}{' '}
+                                            <option
+                                                key={product.id}
+                                                value={product.id}
+                                            >
+                                                {product.name} (
+                                                {formatQty(displayStock)}{' '}
                                                 {unitLabel(inputUnit)})
                                             </option>
                                         );
@@ -176,15 +204,17 @@ export default function OrdersEdit({
                                     min="0.001"
                                     required
                                     value={quantityInput}
-                                    onChange={(event) => setQuantityInput(event.target.value)}
+                                    onChange={(event) =>
+                                        setQuantityInput(event.target.value)
+                                    }
                                 />
                                 <InputError message={errors.quantity_input} />
                             </div>
 
                             {preview && selectedProduct && (
                                 <p className="rounded-md border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-                                    Prévia: {preview.m3} m³ ≈ {preview.ton} t → pedido em{' '}
-                                    {preview.product}{' '}
+                                    Prévia: {preview.m3} m³ ≈ {preview.ton} t →
+                                    pedido em {preview.product}{' '}
                                     {unitLabel(selectedProduct.unit)} (densidade{' '}
                                     {density.toLocaleString('pt-BR', {
                                         minimumFractionDigits: 2,
@@ -203,7 +233,10 @@ export default function OrdersEdit({
                                     className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                 >
                                     {statuses.map((status) => (
-                                        <option key={status.value} value={status.value}>
+                                        <option
+                                            key={status.value}
+                                            value={status.value}
+                                        >
                                             {status.label}
                                         </option>
                                     ))}
@@ -212,7 +245,9 @@ export default function OrdersEdit({
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="destination">Destino / obra</Label>
+                                <Label htmlFor="destination">
+                                    Destino / obra
+                                </Label>
                                 <Input
                                     id="destination"
                                     name="destination"
@@ -232,7 +267,9 @@ export default function OrdersEdit({
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="scheduled_at">Agendamento</Label>
+                                <Label htmlFor="scheduled_at">
+                                    Agendamento
+                                </Label>
                                 <Input
                                     id="scheduled_at"
                                     name="scheduled_at"

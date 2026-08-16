@@ -55,19 +55,23 @@ export default function WeighTicketsCreate({
                     {({ errors, processing }) => (
                         <>
                             <div className="grid gap-2">
-                                <Label htmlFor="order_id">Pedido (opcional)</Label>
+                                <Label htmlFor="order_id">
+                                    Pedido (opcional)
+                                </Label>
                                 <select
                                     id="order_id"
                                     name="order_id"
                                     value={orderId}
-                                    onChange={(event) => setOrderId(event.target.value)}
+                                    onChange={(event) =>
+                                        setOrderId(event.target.value)
+                                    }
                                     className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                 >
                                     <option value="">Pesagem avulsa</option>
                                     {orders.map((order) => (
                                         <option key={order.id} value={order.id}>
-                                            #{order.id} · {order.customer?.name} ·{' '}
-                                            {order.product?.name}
+                                            #{order.id} · {order.customer?.name}{' '}
+                                            · {order.product?.name}
                                         </option>
                                     ))}
                                 </select>
@@ -77,7 +81,9 @@ export default function WeighTicketsCreate({
                             {!selectedOrder && (
                                 <>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="customer_id">Cliente</Label>
+                                        <Label htmlFor="customer_id">
+                                            Cliente
+                                        </Label>
                                         <select
                                             id="customer_id"
                                             name="customer_id"
@@ -89,16 +95,23 @@ export default function WeighTicketsCreate({
                                                 Selecione
                                             </option>
                                             {customers.map((customer) => (
-                                                <option key={customer.id} value={customer.id}>
+                                                <option
+                                                    key={customer.id}
+                                                    value={customer.id}
+                                                >
                                                     {customer.name}
                                                 </option>
                                             ))}
                                         </select>
-                                        <InputError message={errors.customer_id} />
+                                        <InputError
+                                            message={errors.customer_id}
+                                        />
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <Label htmlFor="product_id">Produto</Label>
+                                        <Label htmlFor="product_id">
+                                            Produto
+                                        </Label>
                                         <select
                                             id="product_id"
                                             name="product_id"
@@ -110,7 +123,10 @@ export default function WeighTicketsCreate({
                                                 Selecione
                                             </option>
                                             {products.map((product) => (
-                                                <option key={product.id} value={product.id}>
+                                                <option
+                                                    key={product.id}
+                                                    value={product.id}
+                                                >
                                                     {product.name} (
                                                     {formatQtyWithUnit(
                                                         product.stock_quantity,
@@ -120,14 +136,17 @@ export default function WeighTicketsCreate({
                                                 </option>
                                             ))}
                                         </select>
-                                        <InputError message={errors.product_id} />
+                                        <InputError
+                                            message={errors.product_id}
+                                        />
                                     </div>
                                 </>
                             )}
 
                             {selectedOrder && (
                                 <p className="rounded-md border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-                                    Cliente e produto serão herdados do pedido #{selectedOrder.id}.
+                                    Cliente e produto serão herdados do pedido #
+                                    {selectedOrder.id}.
                                 </p>
                             )}
 
@@ -137,7 +156,9 @@ export default function WeighTicketsCreate({
                                     id="vehicle_plate"
                                     name="vehicle_plate"
                                     required
-                                    defaultValue={selectedOrder?.vehicle_plate ?? ''}
+                                    defaultValue={
+                                        selectedOrder?.vehicle_plate ?? ''
+                                    }
                                 />
                                 <InputError message={errors.vehicle_plate} />
                             </div>
@@ -156,7 +177,9 @@ export default function WeighTicketsCreate({
                                     <InputError message={errors.tare_weight} />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="gross_weight">Peso bruto</Label>
+                                    <Label htmlFor="gross_weight">
+                                        Peso bruto
+                                    </Label>
                                     <Input
                                         id="gross_weight"
                                         name="gross_weight"

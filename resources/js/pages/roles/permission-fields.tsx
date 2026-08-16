@@ -23,10 +23,7 @@ export default function RolePermissionFields({
 
             <div className="grid gap-4 md:grid-cols-2">
                 {Object.entries(groups).map(([group, items]) => (
-                    <fieldset
-                        key={group}
-                        className="rounded-xl border p-4"
-                    >
+                    <fieldset key={group} className="rounded-xl border p-4">
                         <legend className="px-1 text-sm font-medium">
                             {group}
                         </legend>

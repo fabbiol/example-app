@@ -24,31 +24,49 @@ export default function ProductsShow({ product }: { product: Product }) {
 
                 <dl className="grid gap-4 rounded-xl border p-4 sm:grid-cols-2">
                     <div>
-                        <dt className="text-sm text-muted-foreground">Estoque</dt>
+                        <dt className="text-sm text-muted-foreground">
+                            Estoque
+                        </dt>
                         <dd className="text-lg font-medium">
-                            {formatQtyWithUnit(product.stock_quantity, product.unit)}
+                            {formatQtyWithUnit(
+                                product.stock_quantity,
+                                product.unit,
+                            )}
                         </dd>
                     </div>
                     <div>
-                        <dt className="text-sm text-muted-foreground">Densidade</dt>
+                        <dt className="text-sm text-muted-foreground">
+                            Densidade
+                        </dt>
                         <dd>{formatQty(product.density, 2)} t/m³</dd>
                     </div>
                     <div>
-                        <dt className="text-sm text-muted-foreground">Concha padrão</dt>
+                        <dt className="text-sm text-muted-foreground">
+                            Concha padrão
+                        </dt>
                         <dd>
-                            {formatQty(product.bucket_capacity_m3)} {unitLabel('m3')}
+                            {formatQty(product.bucket_capacity_m3)}{' '}
+                            {unitLabel('m3')}
                         </dd>
                     </div>
                     <div>
-                        <dt className="text-sm text-muted-foreground">Status</dt>
+                        <dt className="text-sm text-muted-foreground">
+                            Status
+                        </dt>
                         <dd className="mt-1">
-                            <Badge variant={product.is_active ? 'default' : 'secondary'}>
+                            <Badge
+                                variant={
+                                    product.is_active ? 'default' : 'secondary'
+                                }
+                            >
                                 {product.is_active ? 'Ativo' : 'Inativo'}
                             </Badge>
                         </dd>
                     </div>
                     <div className="sm:col-span-2">
-                        <dt className="text-sm text-muted-foreground">Observações</dt>
+                        <dt className="text-sm text-muted-foreground">
+                            Observações
+                        </dt>
                         <dd className="mt-1">{product.notes || '—'}</dd>
                     </div>
                 </dl>

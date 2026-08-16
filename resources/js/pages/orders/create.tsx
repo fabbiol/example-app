@@ -11,7 +11,10 @@ import { create, index } from '@/routes/orders';
 import type { Option, Product } from '@/types';
 
 type CustomerOption = { id: number; name: string };
-type ProductOption = Pick<Product, 'id' | 'name' | 'unit' | 'density' | 'stock_quantity'>;
+type ProductOption = Pick<
+    Product,
+    'id' | 'name' | 'unit' | 'density' | 'stock_quantity'
+>;
 type DisplayUnit = 'm3' | 'ton';
 
 export default function OrdersCreate({
@@ -29,7 +32,9 @@ export default function OrdersCreate({
     const [inputUnit, setInputUnit] = useState<DisplayUnit>('m3');
     const [quantityInput, setQuantityInput] = useState('');
 
-    const selectedProduct = products.find((product) => String(product.id) === productId);
+    const selectedProduct = products.find(
+        (product) => String(product.id) === productId,
+    );
     const density = selectedProduct ? Number(selectedProduct.density) : 1.45;
 
     const preview = useMemo(() => {
@@ -70,7 +75,10 @@ export default function OrdersCreate({
                     description="Informe a quantidade estimada em m³ ou t — o sistema converte para a unidade do produto"
                 />
 
-                <Form {...OrderController.store.form()} className="max-w-xl space-y-6">
+                <Form
+                    {...OrderController.store.form()}
+                    className="max-w-xl space-y-6"
+                >
                     {({ errors, processing }) => (
                         <>
                             <div className="grid gap-2">
@@ -86,7 +94,10 @@ export default function OrdersCreate({
                                         Selecione
                                     </option>
                                     {customers.map((customer) => (
-                                        <option key={customer.id} value={customer.id}>
+                                        <option
+                                            key={customer.id}
+                                            value={customer.id}
+                                        >
                                             {customer.name}
                                         </option>
                                     ))}
@@ -95,18 +106,25 @@ export default function OrdersCreate({
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="input_unit">Unidade estimada</Label>
+                                <Label htmlFor="input_unit">
+                                    Unidade estimada
+                                </Label>
                                 <select
                                     id="input_unit"
                                     name="input_unit"
                                     value={inputUnit}
                                     onChange={(event) =>
-                                        setInputUnit(event.target.value as DisplayUnit)
+                                        setInputUnit(
+                                            event.target.value as DisplayUnit,
+                                        )
                                     }
                                     className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                 >
                                     {units.map((unit) => (
-                                        <option key={unit.value} value={unit.value}>
+                                        <option
+                                            key={unit.value}
+                                            value={unit.value}
+                                        >
                                             {unit.label}
                                         </option>
                                     ))}
@@ -123,7 +141,9 @@ export default function OrdersCreate({
                                     name="product_id"
                                     required
                                     value={productId}
-                                    onChange={(event) => setProductId(event.target.value)}
+                                    onChange={(event) =>
+                                        setProductId(event.target.value)
+                                    }
                                     className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                 >
                                     <option value="" disabled>
@@ -138,8 +158,12 @@ export default function OrdersCreate({
                                         );
 
                                         return (
-                                            <option key={product.id} value={product.id}>
-                                                {product.name} ({formatQty(stock)}{' '}
+                                            <option
+                                                key={product.id}
+                                                value={product.id}
+                                            >
+                                                {product.name} (
+                                                {formatQty(stock)}{' '}
                                                 {unitLabel(inputUnit)})
                                             </option>
                                         );
@@ -160,7 +184,9 @@ export default function OrdersCreate({
                                     min="0.001"
                                     required
                                     value={quantityInput}
-                                    onChange={(event) => setQuantityInput(event.target.value)}
+                                    onChange={(event) =>
+                                        setQuantityInput(event.target.value)
+                                    }
                                     placeholder={`Ex.: 12 ${unitLabel(inputUnit)}`}
                                 />
                                 <InputError message={errors.quantity_input} />
@@ -168,8 +194,8 @@ export default function OrdersCreate({
 
                             {preview && selectedProduct && (
                                 <p className="rounded-md border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-                                    Prévia: {preview.m3} m³ ≈ {preview.ton} t → pedido em{' '}
-                                    {preview.product}{' '}
+                                    Prévia: {preview.m3} m³ ≈ {preview.ton} t →
+                                    pedido em {preview.product}{' '}
                                     {unitLabel(selectedProduct.unit)} (densidade{' '}
                                     {density.toLocaleString('pt-BR', {
                                         minimumFractionDigits: 2,
@@ -188,7 +214,10 @@ export default function OrdersCreate({
                                     className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                 >
                                     {statuses.map((status) => (
-                                        <option key={status.value} value={status.value}>
+                                        <option
+                                            key={status.value}
+                                            value={status.value}
+                                        >
                                             {status.label}
                                         </option>
                                     ))}
@@ -197,19 +226,26 @@ export default function OrdersCreate({
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="destination">Destino / obra</Label>
+                                <Label htmlFor="destination">
+                                    Destino / obra
+                                </Label>
                                 <Input id="destination" name="destination" />
                                 <InputError message={errors.destination} />
                             </div>
 
                             <div className="grid gap-2">
                                 <Label htmlFor="vehicle_plate">Placa</Label>
-                                <Input id="vehicle_plate" name="vehicle_plate" />
+                                <Input
+                                    id="vehicle_plate"
+                                    name="vehicle_plate"
+                                />
                                 <InputError message={errors.vehicle_plate} />
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="scheduled_at">Agendamento</Label>
+                                <Label htmlFor="scheduled_at">
+                                    Agendamento
+                                </Label>
                                 <Input
                                     id="scheduled_at"
                                     name="scheduled_at"

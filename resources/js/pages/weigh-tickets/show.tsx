@@ -18,16 +18,24 @@ export default function WeighTicketsShow({ ticket }: { ticket: WeighTicket }) {
 
                 <dl className="grid gap-4 rounded-xl border p-4 sm:grid-cols-2">
                     <div>
-                        <dt className="text-sm text-muted-foreground">Cliente</dt>
+                        <dt className="text-sm text-muted-foreground">
+                            Cliente
+                        </dt>
                         <dd className="font-medium">{ticket.customer?.name}</dd>
                     </div>
                     <div>
-                        <dt className="text-sm text-muted-foreground">Produto</dt>
+                        <dt className="text-sm text-muted-foreground">
+                            Produto
+                        </dt>
                         <dd className="font-medium">{ticket.product?.name}</dd>
                     </div>
                     <div>
-                        <dt className="text-sm text-muted-foreground">Pedido</dt>
-                        <dd>{ticket.order_id ? `#${ticket.order_id}` : 'Avulso'}</dd>
+                        <dt className="text-sm text-muted-foreground">
+                            Pedido
+                        </dt>
+                        <dd>
+                            {ticket.order_id ? `#${ticket.order_id}` : 'Avulso'}
+                        </dd>
                     </div>
                     <div>
                         <dt className="text-sm text-muted-foreground">Placa</dt>
@@ -42,13 +50,17 @@ export default function WeighTicketsShow({ ticket }: { ticket: WeighTicket }) {
                         <dd>{formatQty(ticket.gross_weight)} t</dd>
                     </div>
                     <div>
-                        <dt className="text-sm text-muted-foreground">Líquido (balança)</dt>
+                        <dt className="text-sm text-muted-foreground">
+                            Líquido (balança)
+                        </dt>
                         <dd className="text-lg font-semibold">
                             {formatQty(ticket.net_weight)} t
                         </dd>
                     </div>
                     <div>
-                        <dt className="text-sm text-muted-foreground">Equivalente em m³</dt>
+                        <dt className="text-sm text-muted-foreground">
+                            Equivalente em m³
+                        </dt>
                         <dd>
                             {ticket.quantity_m3
                                 ? `${formatQty(ticket.quantity_m3)} m³`
@@ -56,23 +68,40 @@ export default function WeighTicketsShow({ ticket }: { ticket: WeighTicket }) {
                         </dd>
                     </div>
                     <div>
-                        <dt className="text-sm text-muted-foreground">Baixa no estoque</dt>
+                        <dt className="text-sm text-muted-foreground">
+                            Baixa no estoque
+                        </dt>
                         <dd>
-                            {formatQtyWithUnit(ticket.quantity, ticket.product?.unit)}
+                            {formatQtyWithUnit(
+                                ticket.quantity,
+                                ticket.product?.unit,
+                            )}
                         </dd>
                     </div>
                     <div>
-                        <dt className="text-sm text-muted-foreground">Densidade</dt>
+                        <dt className="text-sm text-muted-foreground">
+                            Densidade
+                        </dt>
                         <dd>
-                            {ticket.density ? `${formatQty(ticket.density, 2)} t/m³` : '—'}
+                            {ticket.density
+                                ? `${formatQty(ticket.density, 2)} t/m³`
+                                : '—'}
                         </dd>
                     </div>
                     <div>
-                        <dt className="text-sm text-muted-foreground">Pesagem</dt>
-                        <dd>{new Date(ticket.weighed_at).toLocaleString('pt-BR')}</dd>
+                        <dt className="text-sm text-muted-foreground">
+                            Pesagem
+                        </dt>
+                        <dd>
+                            {new Date(ticket.weighed_at).toLocaleString(
+                                'pt-BR',
+                            )}
+                        </dd>
                     </div>
                     <div className="sm:col-span-2">
-                        <dt className="text-sm text-muted-foreground">Observações</dt>
+                        <dt className="text-sm text-muted-foreground">
+                            Observações
+                        </dt>
                         <dd>{ticket.notes || '—'}</dd>
                     </div>
                 </dl>

@@ -1,20 +1,31 @@
 import { Head, Link } from '@inertiajs/react';
 import type { InertiaLinkProps } from '@inertiajs/react';
 import { Factory, Package, Scale, ShoppingCart, Shovel } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useStoredDisplayUnit } from '@/hooks/use-stored-display-unit';
 import { formatQty, toDisplayUnit, unitLabel } from '@/lib/quantity';
-import { create as createEstimate, index as estimatesIndex, show as estimateShow } from '@/routes/estimated-loadings';
 import { dashboard } from '@/routes';
+import {
+    create as createEstimate,
+    index as estimatesIndex,
+    show as estimateShow,
+} from '@/routes/estimated-loadings';
 import { index as ordersIndex, show as orderShow } from '@/routes/orders';
 import { index as productionIndex } from '@/routes/production';
 import { index as productsIndex } from '@/routes/products';
-import { index as ticketsIndex, show as ticketShow } from '@/routes/weigh-tickets';
-import type { EstimatedLoading, Order, OrderStatus, Product, WeighTicket } from '@/types';
-
-type DisplayUnit = 'm3' | 'ton';
+import {
+    index as ticketsIndex,
+    show as ticketShow,
+} from '@/routes/weigh-tickets';
+import type {
+    EstimatedLoading,
+    Order,
+    OrderStatus,
+    Product,
+    WeighTicket,
+} from '@/types';
 
 type Totals = {
     active_products: number;
@@ -62,20 +73,7 @@ export default function Dashboard({
     recent_estimates: EstimatedLoading[];
     date: string;
 }) {
-    const [displayUnit, setDisplayUnit] = useState<DisplayUnit>('m3');
-
-    useEffect(() => {
-        const saved = window.localStorage.getItem(STORAGE_KEY);
-
-        if (saved === 'm3' || saved === 'ton') {
-            setDisplayUnit(saved);
-        }
-    }, []);
-
-    const changeUnit = (unit: DisplayUnit) => {
-        setDisplayUnit(unit);
-        window.localStorage.setItem(STORAGE_KEY, unit);
-    };
+    const [displayUnit, changeUnit] = useStoredDisplayUnit(STORAGE_KEY);
 
     const dayLabel = new Date(`${date}T12:00:00`).toLocaleDateString('pt-BR', {
         weekday: 'long',
@@ -90,7 +88,9 @@ export default function Dashboard({
             ? totals.estimated_today_m3
             : totals.estimated_today_ton;
     const weighedToday =
-        displayUnit === 'm3' ? totals.weighed_today_m3 : totals.weighed_today_ton;
+        displayUnit === 'm3'
+            ? totals.weighed_today_m3
+            : totals.weighed_today_ton;
     const producedToday =
         displayUnit === 'm3'
             ? totals.produced_today_m3
@@ -115,7 +115,9 @@ export default function Dashboard({
                             <Button
                                 type="button"
                                 size="sm"
-                                variant={displayUnit === 'm3' ? 'default' : 'ghost'}
+                                variant={
+                                    displayUnit === 'm3' ? 'default' : 'ghost'
+                                }
                                 onClick={() => changeUnit('m3')}
                             >
                                 m³
@@ -123,7 +125,9 @@ export default function Dashboard({
                             <Button
                                 type="button"
                                 size="sm"
-                                variant={displayUnit === 'ton' ? 'default' : 'ghost'}
+                                variant={
+                                    displayUnit === 'ton' ? 'default' : 'ghost'
+                                }
                                 onClick={() => changeUnit('ton')}
                             >
                                 t
@@ -133,7 +137,9 @@ export default function Dashboard({
                             <Link href={ticketsIndex()}>Balança</Link>
                         </Button>
                         <Button asChild>
-                            <Link href={createEstimate()}>Novo carregamento</Link>
+                            <Link href={createEstimate()}>
+                                Novo carregamento
+                            </Link>
                         </Button>
                     </div>
                 </div>
@@ -190,8 +196,12 @@ export default function Dashboard({
                             <table className="w-full text-left text-sm">
                                 <thead className="border-b bg-muted/40">
                                     <tr>
-                                        <th className="px-4 py-2 font-medium">Produto</th>
-                                        <th className="px-4 py-2 font-medium">Código</th>
+                                        <th className="px-4 py-2 font-medium">
+                                            Produto
+                                        </th>
+                                        <th className="px-4 py-2 font-medium">
+                                            Código
+                                        </th>
                                         <th className="px-4 py-2 text-right font-medium">
                                             Estoque
                                         </th>
@@ -211,12 +221,15 @@ export default function Dashboard({
                                                 key={product.id}
                                                 className="border-b last:border-0"
                                             >
-                                                <td className="px-4 py-2">{product.name}</td>
+                                                <td className="px-4 py-2">
+                                                    {product.name}
+                                                </td>
                                                 <td className="px-4 py-2 font-mono text-xs">
                                                     {product.code}
                                                 </td>
                                                 <td className="px-4 py-2 text-right font-medium">
-                                                    {formatQty(qty)} {unitLabel(displayUnit)}
+                                                    {formatQty(qty)}{' '}
+                                                    {unitLabel(displayUnit)}
                                                 </td>
                                             </tr>
                                         );
@@ -249,11 +262,21 @@ export default function Dashboard({
                             <table className="w-full text-left text-sm">
                                 <thead className="border-b bg-muted/40">
                                     <tr>
-                                        <th className="px-4 py-2 font-medium">#</th>
-                                        <th className="px-4 py-2 font-medium">Cliente</th>
-                                        <th className="px-4 py-2 font-medium">Produto</th>
-                                        <th className="px-4 py-2 font-medium">Restante</th>
-                                        <th className="px-4 py-2 font-medium">Status</th>
+                                        <th className="px-4 py-2 font-medium">
+                                            #
+                                        </th>
+                                        <th className="px-4 py-2 font-medium">
+                                            Cliente
+                                        </th>
+                                        <th className="px-4 py-2 font-medium">
+                                            Produto
+                                        </th>
+                                        <th className="px-4 py-2 font-medium">
+                                            Restante
+                                        </th>
+                                        <th className="px-4 py-2 font-medium">
+                                            Status
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -264,7 +287,9 @@ export default function Dashboard({
                                         const qty = toDisplayUnit(
                                             remaining,
                                             order.product?.unit ?? 'ton',
-                                            Number(order.product?.density ?? 1.45),
+                                            Number(
+                                                order.product?.density ?? 1.45,
+                                            ),
                                             displayUnit,
                                         );
 
@@ -275,7 +300,9 @@ export default function Dashboard({
                                             >
                                                 <td className="px-4 py-2">
                                                     <Link
-                                                        href={orderShow(order.id)}
+                                                        href={orderShow(
+                                                            order.id,
+                                                        )}
                                                         className="underline-offset-4 hover:underline"
                                                     >
                                                         {order.id}
@@ -288,11 +315,16 @@ export default function Dashboard({
                                                     {order.product?.name}
                                                 </td>
                                                 <td className="px-4 py-2 font-medium">
-                                                    {formatQty(qty)} {unitLabel(displayUnit)}
+                                                    {formatQty(qty)}{' '}
+                                                    {unitLabel(displayUnit)}
                                                 </td>
                                                 <td className="px-4 py-2">
                                                     <Badge variant="secondary">
-                                                        {statusLabel[order.status]}
+                                                        {
+                                                            statusLabel[
+                                                                order.status
+                                                            ]
+                                                        }
                                                     </Badge>
                                                 </td>
                                             </tr>
@@ -317,7 +349,9 @@ export default function Dashboard({
                 <div className="grid gap-4 xl:grid-cols-2">
                     <section className="rounded-xl border">
                         <div className="flex items-center justify-between border-b px-4 py-3">
-                            <h2 className="text-sm font-medium">Carregamentos de hoje</h2>
+                            <h2 className="text-sm font-medium">
+                                Carregamentos de hoje
+                            </h2>
                             <Button variant="ghost" size="sm" asChild>
                                 <Link href={estimatesIndex()}>Ver todas</Link>
                             </Button>
@@ -326,8 +360,12 @@ export default function Dashboard({
                             <table className="w-full text-left text-sm">
                                 <thead className="border-b bg-muted/40">
                                     <tr>
-                                        <th className="px-4 py-2 font-medium">Nº</th>
-                                        <th className="px-4 py-2 font-medium">Cliente</th>
+                                        <th className="px-4 py-2 font-medium">
+                                            Nº
+                                        </th>
+                                        <th className="px-4 py-2 font-medium">
+                                            Cliente
+                                        </th>
                                         <th className="px-4 py-2 text-right font-medium">
                                             {unitLabel(displayUnit)}
                                         </th>
@@ -347,7 +385,9 @@ export default function Dashboard({
                                             >
                                                 <td className="px-4 py-2 font-mono text-xs">
                                                     <Link
-                                                        href={estimateShow(loading.id)}
+                                                        href={estimateShow(
+                                                            loading.id,
+                                                        )}
                                                         className="underline-offset-4 hover:underline"
                                                     >
                                                         {loading.number}
@@ -357,7 +397,8 @@ export default function Dashboard({
                                                     {loading.customer?.name}
                                                 </td>
                                                 <td className="px-4 py-2 text-right font-medium">
-                                                    {formatQty(qty)} {unitLabel(displayUnit)}
+                                                    {formatQty(qty)}{' '}
+                                                    {unitLabel(displayUnit)}
                                                 </td>
                                             </tr>
                                         );
@@ -379,7 +420,9 @@ export default function Dashboard({
 
                     <section className="rounded-xl border">
                         <div className="flex items-center justify-between border-b px-4 py-3">
-                            <h2 className="text-sm font-medium">Pesagens de hoje</h2>
+                            <h2 className="text-sm font-medium">
+                                Pesagens de hoje
+                            </h2>
                             <Button variant="ghost" size="sm" asChild>
                                 <Link href={ticketsIndex()}>Balança</Link>
                             </Button>
@@ -388,8 +431,12 @@ export default function Dashboard({
                             <table className="w-full text-left text-sm">
                                 <thead className="border-b bg-muted/40">
                                     <tr>
-                                        <th className="px-4 py-2 font-medium">Ticket</th>
-                                        <th className="px-4 py-2 font-medium">Cliente</th>
+                                        <th className="px-4 py-2 font-medium">
+                                            Ticket
+                                        </th>
+                                        <th className="px-4 py-2 font-medium">
+                                            Cliente
+                                        </th>
                                         <th className="px-4 py-2 text-right font-medium">
                                             {unitLabel(displayUnit)}
                                         </th>
@@ -401,7 +448,10 @@ export default function Dashboard({
                                             displayUnit === 'm3'
                                                 ? (ticket.quantity_m3 ??
                                                   Number(ticket.net_weight) /
-                                                      Number(ticket.density || 1.45))
+                                                      Number(
+                                                          ticket.density ||
+                                                              1.45,
+                                                      ))
                                                 : ticket.net_weight;
 
                                         return (
@@ -411,7 +461,9 @@ export default function Dashboard({
                                             >
                                                 <td className="px-4 py-2 font-mono text-xs">
                                                     <Link
-                                                        href={ticketShow(ticket.id)}
+                                                        href={ticketShow(
+                                                            ticket.id,
+                                                        )}
                                                         className="underline-offset-4 hover:underline"
                                                     >
                                                         {ticket.number}
@@ -421,7 +473,8 @@ export default function Dashboard({
                                                     {ticket.customer?.name}
                                                 </td>
                                                 <td className="px-4 py-2 text-right font-medium">
-                                                    {formatQty(qty)} {unitLabel(displayUnit)}
+                                                    {formatQty(qty)}{' '}
+                                                    {unitLabel(displayUnit)}
                                                 </td>
                                             </tr>
                                         );
@@ -468,7 +521,9 @@ function StatCard({
                 <Icon className="size-4" />
                 <span className="text-sm">{label}</span>
             </div>
-            <p className="mt-3 text-2xl font-semibold tracking-tight">{value}</p>
+            <p className="mt-3 text-2xl font-semibold tracking-tight">
+                {value}
+            </p>
             <p className="mt-1 text-sm text-muted-foreground">{hint}</p>
         </Link>
     );

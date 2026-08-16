@@ -39,24 +39,39 @@ export default function EstimatedLoadingsIndex({
                         <thead className="border-b bg-muted/40">
                             <tr>
                                 <th className="px-4 py-3 font-medium">Nº</th>
-                                <th className="px-4 py-3 font-medium">Cliente</th>
-                                <th className="px-4 py-3 font-medium">Produto</th>
+                                <th className="px-4 py-3 font-medium">
+                                    Cliente
+                                </th>
+                                <th className="px-4 py-3 font-medium">
+                                    Produto
+                                </th>
                                 <th className="px-4 py-3 font-medium">m³</th>
                                 <th className="px-4 py-3 font-medium">t</th>
-                                <th className="px-4 py-3 font-medium">Conchas</th>
+                                <th className="px-4 py-3 font-medium">
+                                    Conchas
+                                </th>
                                 <th className="px-4 py-3 font-medium">Data</th>
                                 <th className="px-4 py-3 font-medium" />
                             </tr>
                         </thead>
                         <tbody>
                             {loadings.data.map((loading) => (
-                                <tr key={loading.id} className="border-b last:border-0">
+                                <tr
+                                    key={loading.id}
+                                    className="border-b last:border-0"
+                                >
                                     <td className="px-4 py-3 font-mono text-xs">
                                         {loading.number}
                                     </td>
-                                    <td className="px-4 py-3">{loading.customer?.name}</td>
-                                    <td className="px-4 py-3">{loading.product?.name}</td>
-                                    <td className="px-4 py-3">{formatQty(loading.quantity_m3)}</td>
+                                    <td className="px-4 py-3">
+                                        {loading.customer?.name}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {loading.product?.name}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {formatQty(loading.quantity_m3)}
+                                    </td>
                                     <td className="px-4 py-3 font-medium">
                                         {formatQty(loading.quantity_ton)}
                                     </td>
@@ -64,18 +79,28 @@ export default function EstimatedLoadingsIndex({
                                         {loading.buckets_count ?? '—'}
                                     </td>
                                     <td className="px-4 py-3">
-                                        {new Date(loading.loaded_at).toLocaleString('pt-BR')}
+                                        {new Date(
+                                            loading.loaded_at,
+                                        ).toLocaleString('pt-BR')}
                                     </td>
                                     <td className="px-4 py-3">
                                         <div className="flex justify-end gap-2">
-                                            <Button variant="outline" size="sm" asChild>
-                                                <Link href={show(loading.id)}>Ver</Link>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                asChild
+                                            >
+                                                <Link href={show(loading.id)}>
+                                                    Ver
+                                                </Link>
                                             </Button>
                                             <Form
                                                 {...EstimatedLoadingController.destroy.form(
                                                     loading.id,
                                                 )}
-                                                options={{ preserveScroll: true }}
+                                                options={{
+                                                    preserveScroll: true,
+                                                }}
                                             >
                                                 {({ processing }) => (
                                                     <Button

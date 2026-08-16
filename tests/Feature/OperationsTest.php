@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use App\Enums\OrderStatus;
-use App\Enums\ProductUnit;
 use App\Enums\ProductionShift;
+use App\Enums\ProductUnit;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Product;

@@ -62,7 +62,10 @@ export default function ProductsEdit({
                                     className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                 >
                                     {units.map((unit) => (
-                                        <option key={unit.value} value={unit.value}>
+                                        <option
+                                            key={unit.value}
+                                            value={unit.value}
+                                        >
                                             {unit.label}
                                         </option>
                                     ))}
@@ -72,7 +75,9 @@ export default function ProductsEdit({
 
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="density">Densidade (t/m³)</Label>
+                                    <Label htmlFor="density">
+                                        Densidade (t/m³)
+                                    </Label>
                                     <Input
                                         id="density"
                                         name="density"
@@ -95,9 +100,13 @@ export default function ProductsEdit({
                                         step="0.001"
                                         min="0.001"
                                         required
-                                        defaultValue={product.bucket_capacity_m3}
+                                        defaultValue={
+                                            product.bucket_capacity_m3
+                                        }
                                     />
-                                    <InputError message={errors.bucket_capacity_m3} />
+                                    <InputError
+                                        message={errors.bucket_capacity_m3}
+                                    />
                                 </div>
                             </div>
 

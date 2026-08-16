@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\ProductUnit;
 use App\Enums\ProductionMethod;
 use App\Enums\ProductionShift;
 use App\Enums\ProductionStage;
+use App\Enums\ProductUnit;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;

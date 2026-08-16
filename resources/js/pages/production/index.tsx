@@ -68,11 +68,19 @@ export default function ProductionIndex({
                             <tr>
                                 <th className="px-4 py-3 font-medium">Data</th>
                                 <th className="px-4 py-3 font-medium">Etapa</th>
-                                <th className="px-4 py-3 font-medium">Produto</th>
-                                <th className="px-4 py-3 font-medium">Método</th>
-                                <th className="px-4 py-3 font-medium">Detalhe</th>
+                                <th className="px-4 py-3 font-medium">
+                                    Produto
+                                </th>
+                                <th className="px-4 py-3 font-medium">
+                                    Método
+                                </th>
+                                <th className="px-4 py-3 font-medium">
+                                    Detalhe
+                                </th>
                                 <th className="px-4 py-3 font-medium">m³</th>
-                                <th className="px-4 py-3 font-medium">t / qtd</th>
+                                <th className="px-4 py-3 font-medium">
+                                    t / qtd
+                                </th>
                                 <th className="px-4 py-3 font-medium" />
                             </tr>
                         </thead>
@@ -81,9 +89,9 @@ export default function ProductionIndex({
                                 <Fragment key={entry.id}>
                                     <tr className="border-b last:border-0">
                                         <td className="px-4 py-3">
-                                            {new Date(entry.produced_on).toLocaleDateString(
-                                                'pt-BR',
-                                            )}
+                                            {new Date(
+                                                entry.produced_on,
+                                            ).toLocaleDateString('pt-BR')}
                                             <div className="text-xs text-muted-foreground">
                                                 {shiftLabel[entry.shift]}
                                             </div>
@@ -98,8 +106,12 @@ export default function ProductionIndex({
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3">{entry.product?.name}</td>
-                                        <td className="px-4 py-3">{methodLabel[entry.method]}</td>
+                                        <td className="px-4 py-3">
+                                            {entry.product?.name}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {methodLabel[entry.method]}
+                                        </td>
                                         <td className="px-4 py-3 text-muted-foreground">
                                             {entry.method === 'trips'
                                                 ? `${entry.trips_count ?? 0} viagens × ${entry.truck_capacity_m3 ? formatQty(entry.truck_capacity_m3) : '—'} m³${
@@ -107,15 +119,21 @@ export default function ProductionIndex({
                                                           ? ` (${entry.truck.plate})`
                                                           : ''
                                                   }`
-                                                : entry.children && entry.children.length > 0
+                                                : entry.children &&
+                                                    entry.children.length > 0
                                                   ? `${entry.children.length} produtos no circuito`
                                                   : '—'}
                                         </td>
                                         <td className="px-4 py-3">
-                                            {entry.quantity_m3 ? formatQty(entry.quantity_m3) : '—'}
+                                            {entry.quantity_m3
+                                                ? formatQty(entry.quantity_m3)
+                                                : '—'}
                                         </td>
                                         <td className="px-4 py-3 font-medium">
-                                            {formatQty(entry.quantity_ton ?? entry.quantity)}
+                                            {formatQty(
+                                                entry.quantity_ton ??
+                                                    entry.quantity,
+                                            )}
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex justify-end">
@@ -123,14 +141,18 @@ export default function ProductionIndex({
                                                     {...ProductionEntryController.destroy.form(
                                                         entry.id,
                                                     )}
-                                                    options={{ preserveScroll: true }}
+                                                    options={{
+                                                        preserveScroll: true,
+                                                    }}
                                                 >
                                                     {({ processing }) => (
                                                         <Button
                                                             type="submit"
                                                             variant="destructive"
                                                             size="sm"
-                                                            disabled={processing}
+                                                            disabled={
+                                                                processing
+                                                            }
                                                         >
                                                             Remover
                                                         </Button>
@@ -148,9 +170,13 @@ export default function ProductionIndex({
                                                 └ circuito
                                             </td>
                                             <td className="px-4 py-2">
-                                                <Badge variant="outline">Usina</Badge>
+                                                <Badge variant="outline">
+                                                    Usina
+                                                </Badge>
                                             </td>
-                                            <td className="px-4 py-2">{child.product?.name}</td>
+                                            <td className="px-4 py-2">
+                                                {child.product?.name}
+                                            </td>
                                             <td className="px-4 py-2 text-muted-foreground">
                                                 {child.yield_percent
                                                     ? `${child.yield_percent}%`
@@ -160,10 +186,17 @@ export default function ProductionIndex({
                                                 Distribuição automática
                                             </td>
                                             <td className="px-4 py-2">
-                                                {child.quantity_m3 ? formatQty(child.quantity_m3) : '—'}
+                                                {child.quantity_m3
+                                                    ? formatQty(
+                                                          child.quantity_m3,
+                                                      )
+                                                    : '—'}
                                             </td>
                                             <td className="px-4 py-2 font-medium">
-                                                {formatQty(child.quantity_ton ?? child.quantity)}
+                                                {formatQty(
+                                                    child.quantity_ton ??
+                                                        child.quantity,
+                                                )}
                                             </td>
                                             <td className="px-4 py-2" />
                                         </tr>

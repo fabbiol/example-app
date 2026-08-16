@@ -28,16 +28,16 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { edit as profile } from '@/routes/profile';
-import { edit as crushingCircuits } from '@/routes/crushing-circuits';
-import { index as customers } from '@/routes/customers';
 import { dashboard, flow } from '@/routes';
 import { index as activities } from '@/routes/activities';
+import { edit as crushingCircuits } from '@/routes/crushing-circuits';
+import { index as customers } from '@/routes/customers';
 import { index as estimatedLoadings } from '@/routes/estimated-loadings';
 import { index as loader } from '@/routes/loader';
 import { index as orders } from '@/routes/orders';
 import { index as production } from '@/routes/production';
 import { index as products } from '@/routes/products';
+import { edit as profile } from '@/routes/profile';
 import { index as roles } from '@/routes/roles';
 import { index as trucks } from '@/routes/trucks';
 import { index as users } from '@/routes/users';
@@ -153,7 +153,10 @@ const mainNavGroups: NavGroup[] = [
 
 const footerNavItems: NavItem[] = [];
 
-function allowedNavGroups(groups: NavGroup[], permissions: string[]): NavGroup[] {
+function allowedNavGroups(
+    groups: NavGroup[],
+    permissions: string[],
+): NavGroup[] {
     return groups
         .map((group) => ({
             ...group,

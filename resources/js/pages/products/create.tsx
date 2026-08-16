@@ -33,13 +33,23 @@ export default function ProductsCreate({
                         <>
                             <div className="grid gap-2">
                                 <Label htmlFor="name">Nome</Label>
-                                <Input id="name" name="name" required placeholder="Brita 1" />
+                                <Input
+                                    id="name"
+                                    name="name"
+                                    required
+                                    placeholder="Brita 1"
+                                />
                                 <InputError message={errors.name} />
                             </div>
 
                             <div className="grid gap-2">
                                 <Label htmlFor="code">Código</Label>
-                                <Input id="code" name="code" required placeholder="BRITA-1" />
+                                <Input
+                                    id="code"
+                                    name="code"
+                                    required
+                                    placeholder="BRITA-1"
+                                />
                                 <InputError message={errors.code} />
                             </div>
 
@@ -52,7 +62,10 @@ export default function ProductsCreate({
                                     className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                 >
                                     {units.map((unit) => (
-                                        <option key={unit.value} value={unit.value}>
+                                        <option
+                                            key={unit.value}
+                                            value={unit.value}
+                                        >
                                             {unit.label}
                                         </option>
                                     ))}
@@ -62,7 +75,9 @@ export default function ProductsCreate({
 
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="density">Densidade (t/m³)</Label>
+                                    <Label htmlFor="density">
+                                        Densidade (t/m³)
+                                    </Label>
                                     <Input
                                         id="density"
                                         name="density"
@@ -85,14 +100,20 @@ export default function ProductsCreate({
                                         step="0.001"
                                         min="0.001"
                                         required
-                                        defaultValue={defaults.bucket_capacity_m3}
+                                        defaultValue={
+                                            defaults.bucket_capacity_m3
+                                        }
                                     />
-                                    <InputError message={errors.bucket_capacity_m3} />
+                                    <InputError
+                                        message={errors.bucket_capacity_m3}
+                                    />
                                 </div>
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="stock_quantity">Estoque inicial</Label>
+                                <Label htmlFor="stock_quantity">
+                                    Estoque inicial
+                                </Label>
                                 <Input
                                     id="stock_quantity"
                                     name="stock_quantity"

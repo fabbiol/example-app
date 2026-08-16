@@ -1,5 +1,4 @@
 import { Head, router } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
 import Heading from '@/components/heading';
 import Pagination from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
@@ -51,13 +50,8 @@ export default function ActivitiesIndex({
     periods: Option[];
     people: Option[];
 }) {
-    const [from, setFrom] = useState(filters.from ?? '');
-    const [to, setTo] = useState(filters.to ?? '');
-
-    useEffect(() => {
-        setFrom(filters.from ?? '');
-        setTo(filters.to ?? '');
-    }, [filters.from, filters.to]);
+    const from = filters.from ?? '';
+    const to = filters.to ?? '';
 
     const visit = (next: Partial<Filters>) => {
         const merged: Filters = { ...filters, ...next };
@@ -124,7 +118,9 @@ export default function ActivitiesIndex({
                         <Button
                             type="button"
                             size="sm"
-                            variant={filters.domain === null ? 'default' : 'outline'}
+                            variant={
+                                filters.domain === null ? 'default' : 'outline'
+                            }
                             onClick={() => visit({ domain: null })}
                         >
                             Todas
@@ -173,9 +169,7 @@ export default function ActivitiesIndex({
                                 className="w-40"
                                 value={from}
                                 onChange={(event) => {
-                                    const value = event.target.value;
-                                    setFrom(value);
-                                    applyCustomDates(value, to);
+                                    applyCustomDates(event.target.value, to);
                                 }}
                             />
                         </div>
@@ -187,9 +181,7 @@ export default function ActivitiesIndex({
                                 className="w-40"
                                 value={to}
                                 onChange={(event) => {
-                                    const value = event.target.value;
-                                    setTo(value);
-                                    applyCustomDates(from, value);
+                                    applyCustomDates(from, event.target.value);
                                 }}
                             />
                         </div>
@@ -207,7 +199,10 @@ export default function ActivitiesIndex({
                             >
                                 <option value="">Todas as pessoas</option>
                                 {people.map((person) => (
-                                    <option key={person.value} value={person.value}>
+                                    <option
+                                        key={person.value}
+                                        value={person.value}
+                                    >
                                         {person.label}
                                     </option>
                                 ))}
@@ -240,11 +235,17 @@ export default function ActivitiesIndex({
                     <table className="w-full min-w-[720px] text-left text-sm">
                         <thead className="border-b bg-muted/40">
                             <tr>
-                                <th className="px-4 py-3 font-medium">Quando</th>
+                                <th className="px-4 py-3 font-medium">
+                                    Quando
+                                </th>
                                 <th className="px-4 py-3 font-medium">Tipo</th>
                                 <th className="px-4 py-3 font-medium">Ação</th>
-                                <th className="px-4 py-3 font-medium">Atividade</th>
-                                <th className="px-4 py-3 font-medium">Pessoa</th>
+                                <th className="px-4 py-3 font-medium">
+                                    Atividade
+                                </th>
+                                <th className="px-4 py-3 font-medium">
+                                    Pessoa
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -259,7 +260,8 @@ export default function ActivitiesIndex({
                                     <td className="px-4 py-3">
                                         <Badge
                                             variant={
-                                                activity.domain === 'operational'
+                                                activity.domain ===
+                                                'operational'
                                                     ? 'default'
                                                     : 'secondary'
                                             }
@@ -267,7 +269,9 @@ export default function ActivitiesIndex({
                                             {activity.domain_label}
                                         </Badge>
                                     </td>
-                                    <td className="px-4 py-3">{activity.action_label}</td>
+                                    <td className="px-4 py-3">
+                                        {activity.action_label}
+                                    </td>
                                     <td className="px-4 py-3 font-medium">
                                         {activity.description}
                                     </td>

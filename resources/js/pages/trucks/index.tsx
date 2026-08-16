@@ -36,30 +36,59 @@ export default function TrucksIndex({ trucks }: { trucks: Paginated<Truck> }) {
                             <tr>
                                 <th className="px-4 py-3 font-medium">Nome</th>
                                 <th className="px-4 py-3 font-medium">Placa</th>
-                                <th className="px-4 py-3 font-medium">Caçamba</th>
-                                <th className="px-4 py-3 font-medium">Status</th>
+                                <th className="px-4 py-3 font-medium">
+                                    Caçamba
+                                </th>
+                                <th className="px-4 py-3 font-medium">
+                                    Status
+                                </th>
                                 <th className="px-4 py-3 font-medium" />
                             </tr>
                         </thead>
                         <tbody>
                             {trucks.data.map((truck) => (
-                                <tr key={truck.id} className="border-b last:border-0">
+                                <tr
+                                    key={truck.id}
+                                    className="border-b last:border-0"
+                                >
                                     <td className="px-4 py-3">{truck.name}</td>
-                                    <td className="px-4 py-3 font-mono text-xs">{truck.plate}</td>
-                                    <td className="px-4 py-3">{truck.capacity_m3} m³</td>
+                                    <td className="px-4 py-3 font-mono text-xs">
+                                        {truck.plate}
+                                    </td>
                                     <td className="px-4 py-3">
-                                        <Badge variant={truck.is_active ? 'default' : 'secondary'}>
-                                            {truck.is_active ? 'Ativo' : 'Inativo'}
+                                        {truck.capacity_m3} m³
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <Badge
+                                            variant={
+                                                truck.is_active
+                                                    ? 'default'
+                                                    : 'secondary'
+                                            }
+                                        >
+                                            {truck.is_active
+                                                ? 'Ativo'
+                                                : 'Inativo'}
                                         </Badge>
                                     </td>
                                     <td className="px-4 py-3">
                                         <div className="flex justify-end gap-2">
-                                            <Button variant="outline" size="sm" asChild>
-                                                <Link href={edit(truck.id)}>Editar</Link>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                asChild
+                                            >
+                                                <Link href={edit(truck.id)}>
+                                                    Editar
+                                                </Link>
                                             </Button>
                                             <Form
-                                                {...TruckController.destroy.form(truck.id)}
-                                                options={{ preserveScroll: true }}
+                                                {...TruckController.destroy.form(
+                                                    truck.id,
+                                                )}
+                                                options={{
+                                                    preserveScroll: true,
+                                                }}
                                             >
                                                 {({ processing }) => (
                                                     <Button

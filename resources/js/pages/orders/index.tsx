@@ -1,17 +1,15 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import OrderController from '@/actions/App/Http/Controllers/OrderController';
 import FlashMessage from '@/components/flash-message';
 import Heading from '@/components/heading';
 import Pagination from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useStoredDisplayUnit } from '@/hooks/use-stored-display-unit';
 import { formatQty, toDisplayUnit, unitLabel } from '@/lib/quantity';
 import { create, edit, index, show } from '@/routes/orders';
 import type { Order, OrderStatus, Paginated } from '@/types';
-
-type DisplayUnit = 'm3' | 'ton';
 
 const STORAGE_KEY = 'orders.display_unit';
 
@@ -24,20 +22,7 @@ const statusLabel: Record<OrderStatus, string> = {
 };
 
 export default function OrdersIndex({ orders }: { orders: Paginated<Order> }) {
-    const [displayUnit, setDisplayUnit] = useState<DisplayUnit>('m3');
-
-    useEffect(() => {
-        const saved = window.localStorage.getItem(STORAGE_KEY);
-
-        if (saved === 'm3' || saved === 'ton') {
-            setDisplayUnit(saved);
-        }
-    }, []);
-
-    const changeUnit = (unit: DisplayUnit) => {
-        setDisplayUnit(unit);
-        window.localStorage.setItem(STORAGE_KEY, unit);
-    };
+    const [displayUnit, changeUnit] = useStoredDisplayUnit(STORAGE_KEY);
 
     return (
         <>
@@ -54,7 +39,9 @@ export default function OrdersIndex({ orders }: { orders: Paginated<Order> }) {
                             <Button
                                 type="button"
                                 size="sm"
-                                variant={displayUnit === 'm3' ? 'default' : 'ghost'}
+                                variant={
+                                    displayUnit === 'm3' ? 'default' : 'ghost'
+                                }
                                 onClick={() => changeUnit('m3')}
                             >
                                 m³
@@ -62,7 +49,9 @@ export default function OrdersIndex({ orders }: { orders: Paginated<Order> }) {
                             <Button
                                 type="button"
                                 size="sm"
-                                variant={displayUnit === 'ton' ? 'default' : 'ghost'}
+                                variant={
+                                    displayUnit === 'ton' ? 'default' : 'ghost'
+                                }
                                 onClick={() => changeUnit('ton')}
                             >
                                 t
@@ -84,22 +73,31 @@ export default function OrdersIndex({ orders }: { orders: Paginated<Order> }) {
                         <thead className="border-b bg-muted/40">
                             <tr>
                                 <th className="px-4 py-3 font-medium">#</th>
-                                <th className="px-4 py-3 font-medium">Cliente</th>
-                                <th className="px-4 py-3 font-medium">Produto</th>
+                                <th className="px-4 py-3 font-medium">
+                                    Cliente
+                                </th>
+                                <th className="px-4 py-3 font-medium">
+                                    Produto
+                                </th>
                                 <th className="px-4 py-3 font-medium">
                                     Solicitado ({unitLabel(displayUnit)})
                                 </th>
                                 <th className="px-4 py-3 font-medium">
                                     Carregado ({unitLabel(displayUnit)})
                                 </th>
-                                <th className="px-4 py-3 font-medium">Status</th>
+                                <th className="px-4 py-3 font-medium">
+                                    Status
+                                </th>
                                 <th className="px-4 py-3 font-medium" />
                             </tr>
                         </thead>
                         <tbody>
                             {orders.data.map((order) => {
-                                const productUnit = order.product?.unit ?? 'ton';
-                                const density = Number(order.product?.density ?? 1.45);
+                                const productUnit =
+                                    order.product?.unit ?? 'ton';
+                                const density = Number(
+                                    order.product?.density ?? 1.45,
+                                );
                                 const requested = toDisplayUnit(
                                     Number(order.quantity_requested),
                                     productUnit,
@@ -114,15 +112,26 @@ export default function OrdersIndex({ orders }: { orders: Paginated<Order> }) {
                                 );
 
                                 return (
-                                    <tr key={order.id} className="border-b last:border-0">
-                                        <td className="px-4 py-3">{order.id}</td>
-                                        <td className="px-4 py-3">{order.customer?.name}</td>
-                                        <td className="px-4 py-3">{order.product?.name}</td>
-                                        <td className="px-4 py-3 font-medium">
-                                            {formatQty(requested)} {unitLabel(displayUnit)}
+                                    <tr
+                                        key={order.id}
+                                        className="border-b last:border-0"
+                                    >
+                                        <td className="px-4 py-3">
+                                            {order.id}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {order.customer?.name}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {order.product?.name}
                                         </td>
                                         <td className="px-4 py-3 font-medium">
-                                            {formatQty(loaded)} {unitLabel(displayUnit)}
+                                            {formatQty(requested)}{' '}
+                                            {unitLabel(displayUnit)}
+                                        </td>
+                                        <td className="px-4 py-3 font-medium">
+                                            {formatQty(loaded)}{' '}
+                                            {unitLabel(displayUnit)}
                                         </td>
                                         <td className="px-4 py-3">
                                             <Badge variant="secondary">
@@ -131,22 +140,40 @@ export default function OrdersIndex({ orders }: { orders: Paginated<Order> }) {
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex justify-end gap-2">
-                                                <Button variant="outline" size="sm" asChild>
-                                                    <Link href={show(order.id)}>Ver</Link>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    asChild
+                                                >
+                                                    <Link href={show(order.id)}>
+                                                        Ver
+                                                    </Link>
                                                 </Button>
-                                                <Button variant="outline" size="sm" asChild>
-                                                    <Link href={edit(order.id)}>Editar</Link>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    asChild
+                                                >
+                                                    <Link href={edit(order.id)}>
+                                                        Editar
+                                                    </Link>
                                                 </Button>
                                                 <Form
-                                                    {...OrderController.destroy.form(order.id)}
-                                                    options={{ preserveScroll: true }}
+                                                    {...OrderController.destroy.form(
+                                                        order.id,
+                                                    )}
+                                                    options={{
+                                                        preserveScroll: true,
+                                                    }}
                                                 >
                                                     {({ processing }) => (
                                                         <Button
                                                             type="submit"
                                                             variant="destructive"
                                                             size="sm"
-                                                            disabled={processing}
+                                                            disabled={
+                                                                processing
+                                                            }
                                                         >
                                                             Excluir
                                                         </Button>

@@ -37,8 +37,13 @@ export default function CustomersCreate() {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="marketup_code">Código MarketUp</Label>
-                                <Input id="marketup_code" name="marketup_code" />
+                                <Label htmlFor="marketup_code">
+                                    Código MarketUp
+                                </Label>
+                                <Input
+                                    id="marketup_code"
+                                    name="marketup_code"
+                                />
                                 <InputError message={errors.marketup_code} />
                             </div>
 
