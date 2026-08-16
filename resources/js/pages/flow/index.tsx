@@ -198,8 +198,8 @@ export default function FlowIndex({
                                     </td>
                                     <td className="px-4 py-3">Carregando</td>
                                     <td className="px-4 py-3">
-                                        Modo pá, carregamento ou balança — ainda
-                                        falta mais que 0,050
+                                        Fila da pá, carregamento ou balança —
+                                        ainda falta mais que 0,050
                                     </td>
                                 </tr>
                                 <tr className="border-b">

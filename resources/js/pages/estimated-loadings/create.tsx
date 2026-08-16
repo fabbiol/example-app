@@ -679,7 +679,7 @@ export default function EstimatedLoadingsCreate({
 
 EstimatedLoadingsCreate.layout = {
     breadcrumbs: [
-        { title: 'Carregamento', href: index() },
+        { title: 'Carregamentos', href: index() },
         { title: 'Novo', href: create() },
     ],
 };

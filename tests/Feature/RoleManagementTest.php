@@ -38,6 +38,26 @@ class RoleManagementTest extends TestCase
                 ->has('roles.data'));
     }
 
+    public function test_role_form_uses_intuitive_menu_labels(): void
+    {
+        $admin = User::factory()->create();
+
+        $this->actingAs($admin)
+            ->get(route('roles.create'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('roles/create')
+                ->where(
+                    'permissionGroups.Expedição',
+                    fn ($items): bool => collect($items)->pluck('label')->all() === [
+                        'Pedidos',
+                        'Fila da pá',
+                        'Carregamentos',
+                        'Balança',
+                    ],
+                ));
+    }
+
     public function test_admin_can_create_a_role_from_menu_permissions(): void
     {
         $admin = User::factory()->create();

@@ -123,7 +123,7 @@ export default function EstimatedLoadingsShow({
 
 EstimatedLoadingsShow.layout = {
     breadcrumbs: [
-        { title: 'Carregamento', href: index() },
+        { title: 'Carregamentos', href: index() },
         { title: 'Detalhes', href: index() },
     ],
 };

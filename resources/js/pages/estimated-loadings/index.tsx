@@ -16,7 +16,7 @@ export default function EstimatedLoadingsIndex({
 }) {
     return (
         <>
-            <Head title="Carregamento" />
+            <Head title="Carregamentos" />
 
             <div className="flex flex-col gap-6 p-4">
                 <div className="flex items-start justify-between gap-4">
@@ -138,5 +138,5 @@ export default function EstimatedLoadingsIndex({
 }
 
 EstimatedLoadingsIndex.layout = {
-    breadcrumbs: [{ title: 'Carregamento', href: index() }],
+    breadcrumbs: [{ title: 'Carregamentos', href: index() }],
 };

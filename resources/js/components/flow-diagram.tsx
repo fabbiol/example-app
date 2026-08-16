@@ -142,7 +142,7 @@ export function ExpeditionFlow({
                     volume={orderVolume(phases.scheduled, 'remaining')}
                     hint="Na fila da expedição"
                 />
-                <DownArrow label="modo pá, carregamento ou balança" />
+                <DownArrow label="fila da pá, carregamento ou balança" />
                 <StateBox
                     title="Carregando"
                     count={countLabel(

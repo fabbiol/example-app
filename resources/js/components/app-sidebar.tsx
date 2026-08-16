@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
+    ClipboardList,
     Factory,
     GitBranch,
     LayoutGrid,
@@ -10,7 +11,6 @@ import {
     Shield,
     Shovel,
     ShoppingCart,
-    Tablet,
     Truck,
     UserRound,
     Users,
@@ -78,15 +78,15 @@ const mainNavGroups: NavGroup[] = [
                 permission: 'orders',
             },
             {
-                title: 'Modo pá',
+                title: 'Fila da pá',
                 href: loader(),
-                icon: Tablet,
+                icon: Shovel,
                 permission: 'loader',
             },
             {
-                title: 'Carregamento',
+                title: 'Carregamentos',
                 href: estimatedLoadings(),
-                icon: Shovel,
+                icon: ClipboardList,
                 permission: 'estimated-loadings',
             },
             {

@@ -213,5 +213,5 @@ export default function LoaderIndex({
 }
 
 LoaderIndex.layout = {
-    breadcrumbs: [{ title: 'Pá', href: index() }],
+    breadcrumbs: [{ title: 'Fila da pá', href: index() }],
 };

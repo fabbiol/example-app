@@ -262,7 +262,7 @@ export default function LoaderShow({ order }: { order: LoaderOrder }) {
 
 LoaderShow.layout = {
     breadcrumbs: [
-        { title: 'Pá', href: index() },
+        { title: 'Fila da pá', href: index() },
         { title: 'Carregar', href: '#' },
     ],
 };
