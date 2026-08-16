@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     ClipboardList,
+    Clock,
     Factory,
     GitBranch,
     LayoutGrid,
@@ -32,6 +33,7 @@ import { dashboard, flow } from '@/routes';
 import { index as activities } from '@/routes/activities';
 import { edit as crushingCircuits } from '@/routes/crushing-circuits';
 import { index as customers } from '@/routes/customers';
+import { index as driver } from '@/routes/driver';
 import { index as estimatedLoadings } from '@/routes/estimated-loadings';
 import { index as loader } from '@/routes/loader';
 import { index as orders } from '@/routes/orders';
@@ -105,6 +107,12 @@ const mainNavGroups: NavGroup[] = [
                 href: production(),
                 icon: Factory,
                 permission: 'production',
+            },
+            {
+                title: 'Motorista',
+                href: driver(),
+                icon: Clock,
+                permission: 'driver',
             },
             {
                 title: 'Circuito',

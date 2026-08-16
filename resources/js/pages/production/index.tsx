@@ -10,7 +10,11 @@ import { Button } from '@/components/ui/button';
 import { formatQty } from '@/lib/quantity';
 import { edit as crushingCircuitsEdit } from '@/routes/crushing-circuits';
 import { create, index } from '@/routes/production';
-import type { Paginated, ProductionEntry } from '@/types';
+import type {
+    HaulageProductionSummary,
+    Paginated,
+    ProductionEntry,
+} from '@/types';
 
 const shiftLabel = {
     morning: 'Manhã',
@@ -29,10 +33,54 @@ const stageLabel = {
     plant: 'Usina',
 } as const;
 
+function formatTime(value: string | null): string | null {
+    if (!value) {
+        return null;
+    }
+
+    return new Date(value).toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+}
+
+function isDriverTrip(entry: ProductionEntry): boolean {
+    return Boolean(entry.loaded_at);
+}
+
+function tripDetail(entry: ProductionEntry): string {
+    if (entry.method === 'trips') {
+        const trips = `${entry.trips_count ?? 0} viagens × ${
+            entry.truck_capacity_m3 ? formatQty(entry.truck_capacity_m3) : '—'
+        } m³${entry.truck ? ` (${entry.truck.plate})` : ''}`;
+
+        const loaded = formatTime(entry.loaded_at);
+        const unloaded = formatTime(entry.unloaded_at);
+
+        if (loaded && unloaded) {
+            const destination = entry.stage === 'plant' ? 'Usina' : 'Primário';
+
+            return `${trips} · Lavra ${loaded} → ${destination} ${unloaded}`;
+        }
+
+        return trips;
+    }
+
+    if (entry.children && entry.children.length > 0) {
+        return `${entry.children.length} produtos no circuito`;
+    }
+
+    return '—';
+}
+
 export default function ProductionIndex({
     entries,
+    haulage_today: haulageToday,
+    in_transit: inTransit,
 }: {
     entries: Paginated<ProductionEntry>;
+    haulage_today: HaulageProductionSummary;
+    in_transit: ProductionEntry[];
 }) {
     return (
         <>
@@ -42,7 +90,7 @@ export default function ProductionIndex({
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <Heading
                         title="Produção"
-                        description="Alimentação do primário e distribuição no circuito secundário de agregados"
+                        description="Viagens do motorista (lavra → primário) e distribuição no circuito secundário"
                     />
                     <div className="flex flex-wrap gap-2">
                         <Button variant="outline" asChild>
@@ -61,6 +109,93 @@ export default function ProductionIndex({
                 </div>
 
                 <FlashMessage />
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-xl border p-4">
+                        <div className="text-xs text-muted-foreground">
+                            Viagens do motorista hoje
+                        </div>
+                        <div className="mt-1 text-2xl font-semibold">
+                            {haulageToday.trips}
+                        </div>
+                    </div>
+                    <div className="rounded-xl border p-4">
+                        <div className="text-xs text-muted-foreground">
+                            Volume das viagens
+                        </div>
+                        <div className="mt-1 text-2xl font-semibold">
+                            {formatQty(haulageToday.volume_m3)} m³
+                        </div>
+                        <div className="mt-1 text-xs text-muted-foreground">
+                            {formatQty(haulageToday.volume_ton)} t
+                        </div>
+                    </div>
+                    <div className="rounded-xl border p-4">
+                        <div className="text-xs text-muted-foreground">
+                            Em viagem agora
+                        </div>
+                        <div className="mt-1 text-2xl font-semibold">
+                            {inTransit.length}
+                        </div>
+                    </div>
+                </div>
+
+                {inTransit.length > 0 && (
+                    <section className="overflow-x-auto rounded-xl border">
+                        <div className="border-b bg-muted/40 px-4 py-3 text-sm font-medium">
+                            Em viagem (ainda não conta na produção)
+                        </div>
+                        <table className="w-full min-w-[720px] text-left text-sm">
+                            <thead className="border-b bg-muted/20">
+                                <tr>
+                                    <th className="px-4 py-2 font-medium">
+                                        Caminhão
+                                    </th>
+                                    <th className="px-4 py-2 font-medium">
+                                        Produto
+                                    </th>
+                                    <th className="px-4 py-2 font-medium">
+                                        Motorista
+                                    </th>
+                                    <th className="px-4 py-2 font-medium">
+                                        Lavra
+                                    </th>
+                                    <th className="px-4 py-2 font-medium">
+                                        m³
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {inTransit.map((entry) => (
+                                    <tr
+                                        key={entry.id}
+                                        className="border-b last:border-0"
+                                    >
+                                        <td className="px-4 py-3">
+                                            {entry.truck
+                                                ? `${entry.truck.name} (${entry.truck.plate})`
+                                                : '—'}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {entry.product?.name}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {entry.user?.name ?? '—'}
+                                        </td>
+                                        <td className="px-4 py-3 text-muted-foreground">
+                                            {formatTime(entry.loaded_at) ?? '—'}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {entry.quantity_m3
+                                                ? formatQty(entry.quantity_m3)
+                                                : '—'}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </section>
+                )}
 
                 <div className="overflow-x-auto rounded-xl border">
                     <table className="w-full min-w-[960px] text-left text-sm">
@@ -97,12 +232,21 @@ export default function ProductionIndex({
                                             </div>
                                         </td>
                                         <td className="px-4 py-3">
-                                            <Badge variant="secondary">
-                                                {stageLabel[entry.stage]}
-                                            </Badge>
+                                            <div className="flex flex-wrap items-center gap-1">
+                                                <Badge variant="secondary">
+                                                    {stageLabel[entry.stage]}
+                                                </Badge>
+                                                {isDriverTrip(entry) && (
+                                                    <Badge variant="outline">
+                                                        Motorista
+                                                    </Badge>
+                                                )}
+                                            </div>
                                             {!entry.affects_stock && (
                                                 <div className="mt-1 text-xs text-muted-foreground">
-                                                    Alimentação (sem estoque)
+                                                    {entry.stage === 'plant'
+                                                        ? 'Sem entrada no estoque'
+                                                        : 'Alimentação (sem estoque)'}
                                                 </div>
                                             )}
                                         </td>
@@ -113,16 +257,7 @@ export default function ProductionIndex({
                                             {methodLabel[entry.method]}
                                         </td>
                                         <td className="px-4 py-3 text-muted-foreground">
-                                            {entry.method === 'trips'
-                                                ? `${entry.trips_count ?? 0} viagens × ${entry.truck_capacity_m3 ? formatQty(entry.truck_capacity_m3) : '—'} m³${
-                                                      entry.truck
-                                                          ? ` (${entry.truck.plate})`
-                                                          : ''
-                                                  }`
-                                                : entry.children &&
-                                                    entry.children.length > 0
-                                                  ? `${entry.children.length} produtos no circuito`
-                                                  : '—'}
+                                            {tripDetail(entry)}
                                         </td>
                                         <td className="px-4 py-3">
                                             {entry.quantity_m3

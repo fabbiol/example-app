@@ -154,12 +154,30 @@ export type ProductionEntry = {
     stage: 'quarry_to_primary' | 'plant';
     shift: 'morning' | 'afternoon' | 'night';
     produced_on: string;
+    loaded_at: string | null;
+    unloaded_at: string | null;
     notes: string | null;
     created_at: string;
     updated_at: string;
     product?: Pick<Product, 'id' | 'name' | 'unit'>;
     truck?: Pick<Truck, 'id' | 'name' | 'plate' | 'capacity_m3'> | null;
+    user?: { id: number; name: string } | null;
     children?: ProductionEntry[];
+};
+
+export type HaulageTruckSummary = {
+    truck_id: number;
+    name: string | null;
+    plate: string | null;
+    trips: number;
+    volume_m3: string;
+};
+
+export type HaulageProductionSummary = {
+    trips: number;
+    volume_m3: string;
+    volume_ton: string;
+    trucks: HaulageTruckSummary[];
 };
 
 export type Truck = {

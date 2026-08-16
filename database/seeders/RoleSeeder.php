@@ -11,5 +11,6 @@ class RoleSeeder extends Seeder
     {
         Role::administrative();
         Role::operator();
+        Role::driver();
     }
 }

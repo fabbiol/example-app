@@ -55,6 +55,14 @@ class RoleManagementTest extends TestCase
                         'Carregamentos',
                         'Balança',
                     ],
+                )
+                ->where(
+                    'permissionGroups.Pátio',
+                    fn ($items): bool => collect($items)->pluck('label')->all() === [
+                        'Produção',
+                        'Motorista',
+                        'Circuito',
+                    ],
                 ));
     }
 

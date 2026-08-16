@@ -41,6 +41,7 @@ type Totals = {
     estimates_today: number;
     produced_today_ton: string;
     produced_today_m3: string;
+    haulage_trips_today: number;
 };
 
 type StockProduct = Pick<
@@ -177,7 +178,11 @@ export default function Dashboard({
                         icon={Factory}
                         label="Produzido hoje"
                         value={`${formatQty(producedToday)} ${unitLabel(displayUnit)}`}
-                        hint="Alimentação / usina"
+                        hint={
+                            totals.haulage_trips_today > 0
+                                ? `${totals.haulage_trips_today} viagens do motorista · alimentação / usina`
+                                : 'Alimentação / usina'
+                        }
                         href={productionIndex()}
                     />
                 </div>

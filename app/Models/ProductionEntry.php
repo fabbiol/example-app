@@ -9,6 +9,7 @@ use App\Enums\ProductUnit;
 use App\Models\Concerns\LogsActivity;
 use Database\Factories\ProductionEntryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -35,6 +36,8 @@ use Illuminate\Support\Carbon;
  * @property ProductionStage $stage
  * @property ProductionShift $shift
  * @property Carbon $produced_on
+ * @property Carbon|null $loaded_at
+ * @property Carbon|null $unloaded_at
  * @property string|null $notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -58,6 +61,8 @@ use Illuminate\Support\Carbon;
     'stage',
     'shift',
     'produced_on',
+    'loaded_at',
+    'unloaded_at',
     'notes',
 ])]
 class ProductionEntry extends Model
@@ -94,6 +99,8 @@ class ProductionEntry extends Model
             'stage' => ProductionStage::class,
             'shift' => ProductionShift::class,
             'produced_on' => 'date',
+            'loaded_at' => 'datetime',
+            'unloaded_at' => 'datetime',
         ];
     }
 
@@ -143,5 +150,34 @@ class ProductionEntry extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeOpenHaulage(Builder $query): Builder
+    {
+        return $query->whereNotNull('loaded_at')->whereNull('unloaded_at');
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeDriverHaulage(Builder $query): Builder
+    {
+        return $query->whereNotNull('loaded_at');
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeCompleted(Builder $query): Builder
+    {
+        return $query->where(function (Builder $query): void {
+            $query->whereNull('loaded_at')->orWhereNotNull('unloaded_at');
+        });
     }
 }

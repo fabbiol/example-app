@@ -38,6 +38,16 @@ class DatabaseSeeder extends Seeder
             ],
         );
 
+        User::query()->updateOrCreate(
+            ['email' => 'motorista@example.com'],
+            [
+                'name' => 'João Silva',
+                'password' => 'password',
+                'role_id' => Role::driver()->id,
+                'email_verified_at' => now(),
+            ],
+        );
+
         $this->call([
             ProductSeeder::class,
             CustomerSeeder::class,

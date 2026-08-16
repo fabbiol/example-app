@@ -10,7 +10,13 @@ import { formatQty, unitLabel } from '@/lib/quantity';
 import { edit as crushingCircuitsEdit } from '@/routes/crushing-circuits';
 import { create, index } from '@/routes/production';
 import { index as trucksIndex } from '@/routes/trucks';
-import type { CrushingCircuit, Option, Product, Truck } from '@/types';
+import type {
+    CrushingCircuit,
+    HaulageProductionSummary,
+    Option,
+    Product,
+    Truck,
+} from '@/types';
 
 type ProductOption = Pick<
     Product,
@@ -29,6 +35,7 @@ export default function ProductionCreate({
     units,
     shifts,
     defaults,
+    haulage_today: haulageToday,
 }: {
     products: ProductOption[];
     trucks: TruckOption[];
@@ -39,6 +46,7 @@ export default function ProductionCreate({
     units: Option[];
     shifts: Option[];
     defaults: { density: number; truck_capacity_m3: number };
+    haulage_today: HaulageProductionSummary;
 }) {
     const today = new Date().toISOString().slice(0, 10);
     const [productId, setProductId] = useState('');
@@ -155,6 +163,33 @@ export default function ProductionCreate({
                         </Button>
                     </div>
                 </div>
+
+                {haulageToday.trips > 0 && (
+                    <div className="max-w-xl rounded-xl border bg-muted/30 px-4 py-3 text-sm">
+                        <p className="font-medium">
+                            {haulageToday.trips === 1
+                                ? '1 viagem do motorista já lançada hoje'
+                                : `${haulageToday.trips} viagens do motorista já lançadas hoje`}
+                            {` (${formatQty(haulageToday.volume_m3)} m³).`}
+                        </p>
+                        <ul className="mt-2 space-y-1 text-muted-foreground">
+                            {haulageToday.trucks.map((truck) => (
+                                <li key={truck.truck_id}>
+                                    {truck.name}
+                                    {truck.plate
+                                        ? ` (${truck.plate})`
+                                        : ''}: {truck.trips}{' '}
+                                    {truck.trips === 1 ? 'viagem' : 'viagens'} ·{' '}
+                                    {formatQty(truck.volume_m3)} m³
+                                </li>
+                            ))}
+                        </ul>
+                        <p className="mt-2 text-xs text-muted-foreground">
+                            Essas viagens já entram na produção ao descarregar
+                            no primário. Não lance de novo aqui.
+                        </p>
+                    </div>
+                )}
 
                 <Form
                     {...ProductionEntryController.store.form()}

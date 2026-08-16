@@ -257,6 +257,7 @@ class OperationsTest extends TestCase
             'dashboard',
             'orders.index',
             'loader.index',
+            'driver.index',
             'estimated-loadings.index',
             'weigh-tickets.index',
             'production.index',

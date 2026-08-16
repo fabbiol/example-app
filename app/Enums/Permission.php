@@ -12,6 +12,7 @@ enum Permission: string
     case EstimatedLoadings = 'estimated-loadings';
     case WeighTickets = 'weigh-tickets';
     case Production = 'production';
+    case Driver = 'driver';
     case CrushingCircuits = 'crushing-circuits';
     case Products = 'products';
     case Customers = 'customers';
@@ -30,6 +31,7 @@ enum Permission: string
             self::EstimatedLoadings => 'Carregamentos',
             self::WeighTickets => 'Balança',
             self::Production => 'Produção',
+            self::Driver => 'Motorista',
             self::CrushingCircuits => 'Circuito',
             self::Products => 'Produtos',
             self::Customers => 'Clientes',
@@ -44,7 +46,7 @@ enum Permission: string
         return match ($this) {
             self::Dashboard, self::Flow, self::Activities => 'Operação',
             self::Orders, self::Loader, self::EstimatedLoadings, self::WeighTickets => 'Expedição',
-            self::Production, self::CrushingCircuits => 'Pátio',
+            self::Production, self::Driver, self::CrushingCircuits => 'Pátio',
             self::Products, self::Customers, self::Users, self::Trucks, self::Roles => 'Cadastros',
         };
     }
@@ -60,6 +62,7 @@ enum Permission: string
             self::EstimatedLoadings => 'estimated-loadings.index',
             self::WeighTickets => 'weigh-tickets.index',
             self::Production => 'production.index',
+            self::Driver => 'driver.index',
             self::CrushingCircuits => 'crushing-circuits.edit',
             self::Products => 'products.index',
             self::Customers => 'customers.index',

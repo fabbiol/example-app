@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\BuildHaulageProductionSummary;
 use App\Actions\RecordProductionEntryAction;
 use App\Enums\ProductionMethod;
 use App\Enums\ProductionShift;
@@ -19,20 +20,25 @@ use Inertia\Response;
 
 class ProductionEntryController extends Controller
 {
-    public function index(): Response
+    public function index(BuildHaulageProductionSummary $haulageSummary): Response
     {
+        $haulage = $haulageSummary->handle();
+
         return Inertia::render('production/index', [
             'entries' => ProductionEntry::query()
                 ->with(['product', 'truck', 'user', 'children.product'])
                 ->whereNull('parent_id')
+                ->completed()
                 ->latest('produced_on')
                 ->latest('id')
                 ->paginate(15)
                 ->withQueryString(),
+            'haulage_today' => $haulage['today'],
+            'in_transit' => $haulage['in_transit'],
         ]);
     }
 
-    public function create(): Response
+    public function create(BuildHaulageProductionSummary $haulageSummary): Response
     {
         $defaultCircuit = CrushingCircuit::query()
             ->with(['yields.product:id,name,code'])
@@ -40,7 +46,10 @@ class ProductionEntryController extends Controller
             ->where('is_active', true)
             ->first();
 
+        $haulage = $haulageSummary->handle();
+
         return Inertia::render('production/create', [
+            'haulage_today' => $haulage['today'],
             'products' => Product::query()->where('is_active', true)->orderBy('name')->get([
                 'id',
                 'name',

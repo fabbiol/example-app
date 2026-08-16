@@ -79,7 +79,7 @@ class BuildFlowDiagram
      */
     private function yard(?CarbonInterface $from, ?CarbonInterface $to): array
     {
-        $parentsQuery = ProductionEntry::query()->whereNull('parent_id');
+        $parentsQuery = ProductionEntry::query()->whereNull('parent_id')->completed();
         $this->constrainDate($parentsQuery, 'produced_on', $from, $to);
 
         $parents = $parentsQuery

@@ -84,6 +84,18 @@ class Role extends Model
         );
     }
 
+    public static function driver(): self
+    {
+        return static::query()->firstOrCreate(
+            ['slug' => UserRole::Driver->value],
+            [
+                'name' => UserRole::Driver->label(),
+                'is_system' => true,
+                'permissions' => [Permission::Driver->value],
+            ],
+        );
+    }
+
     public static function uniqueSlug(string $name, ?int $ignoreId = null): string
     {
         $base = Str::slug($name) ?: 'papel';

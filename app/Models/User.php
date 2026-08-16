@@ -94,6 +94,13 @@ class User extends Authenticatable implements PasskeyUser
         return $this->role?->slug === UserRole::Operator->value;
     }
 
+    public function isDriver(): bool
+    {
+        $this->loadMissing('role');
+
+        return $this->role?->slug === UserRole::Driver->value;
+    }
+
     public static function anotherCanManageRoles(?int $exceptUserId = null, ?int $exceptRoleId = null): bool
     {
         return static::query()

@@ -4,6 +4,7 @@ use App\Http\Controllers\ActivitiesController;
 use App\Http\Controllers\CrushingCircuitController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DriverOperatorController;
 use App\Http\Controllers\EstimatedLoadingController;
 use App\Http\Controllers\FlowController;
 use App\Http\Controllers\LoaderOperatorController;
@@ -24,6 +25,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/orders/{order}', [LoaderOperatorController::class, 'show'])->name('show');
         Route::post('/orders/{order}/loadings', [LoaderOperatorController::class, 'store'])->name('store');
         Route::get('/done/{estimatedLoading}', [LoaderOperatorController::class, 'done'])->name('done');
+    });
+
+    Route::middleware('permission:driver')->prefix('driver')->name('driver.')->group(function () {
+        Route::get('/', [DriverOperatorController::class, 'index'])->name('index');
+        Route::get('/trucks/{truck}', [DriverOperatorController::class, 'show'])->name('show');
+        Route::post('/trucks/{truck}/load', [DriverOperatorController::class, 'load'])->name('load');
+        Route::post('/trucks/{truck}/unload', [DriverOperatorController::class, 'unload'])->name('unload');
+        Route::post('/trucks/{truck}/cancel', [DriverOperatorController::class, 'cancel'])->name('cancel');
     });
 
     Route::middleware('permission:dashboard')->group(function () {

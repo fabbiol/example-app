@@ -29,7 +29,8 @@ class BuildOperationalDashboard
      *         estimated_today_m3: string,
      *         estimates_today: int,
      *         produced_today_ton: string,
-     *         produced_today_m3: string
+     *         produced_today_m3: string,
+     *         haulage_trips_today: int
      *     },
      *     stocks: Collection<int, Product>,
      *     queue: Collection<int, Order>,
@@ -104,14 +105,23 @@ class BuildOperationalDashboard
             ->sum('quantity_m3') ?: '0');
 
         $producedTodayTon = (string) (ProductionEntry::query()
+            ->completed()
             ->whereDate('produced_on', $day)
             ->whereNull('parent_id')
             ->sum('quantity_ton') ?: '0');
 
         $producedTodayM3 = (string) (ProductionEntry::query()
+            ->completed()
             ->whereDate('produced_on', $day)
             ->whereNull('parent_id')
             ->sum('quantity_m3') ?: '0');
+
+        $haulageTripsToday = (int) ProductionEntry::query()
+            ->completed()
+            ->driverHaulage()
+            ->whereDate('unloaded_at', $day)
+            ->whereNull('parent_id')
+            ->sum('trips_count');
 
         $openOrders = Order::query()
             ->whereIn('status', [
@@ -152,6 +162,7 @@ class BuildOperationalDashboard
                 'estimates_today' => $estimatesToday,
                 'produced_today_ton' => number_format((float) $producedTodayTon, 3, '.', ''),
                 'produced_today_m3' => number_format((float) $producedTodayM3, 3, '.', ''),
+                'haulage_trips_today' => $haulageTripsToday,
             ],
             'stocks' => $stocks,
             'queue' => $queue,

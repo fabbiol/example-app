@@ -45,6 +45,13 @@ class UserFactory extends Factory
         ]);
     }
 
+    public function driver(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role_id' => Role::driver()->id,
+        ]);
+    }
+
     public function admin(): static
     {
         return $this->state(fn (array $attributes) => [
