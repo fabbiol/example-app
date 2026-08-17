@@ -52,18 +52,18 @@ class ProductDensityTest extends TestCase
                 'customer_id' => $customer->id,
                 'product_id' => $product->id,
                 'vehicle_plate' => 'ABC1D23',
-                'mode' => 'buckets',
-                'buckets_count' => 10,
+                'input_unit' => ProductUnit::CubicMeter->value,
+                'quantity_input' => 14,
             ])
             ->assertRedirect();
 
         $loading = EstimatedLoading::query()->firstOrFail();
 
-        // 10 conchas × 1.40 m³ = 14.000 m³ × 1.40 = 19.600 t
         $this->assertSame('14.000', $loading->quantity_m3);
         $this->assertSame('19.600', $loading->quantity_ton);
         $this->assertSame('1.400', $loading->density);
-        $this->assertSame('1.400', $loading->bucket_capacity_m3);
+        $this->assertNull($loading->buckets_count);
+        $this->assertNull($loading->bucket_capacity_m3);
         $this->assertSame('80.400', $product->fresh()->stock_quantity);
     }
 }

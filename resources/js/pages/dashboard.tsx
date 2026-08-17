@@ -1,7 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
 import type { InertiaLinkProps } from '@inertiajs/react';
 import { Factory, Package, Scale, ShoppingCart, Shovel } from 'lucide-react';
+import EstimatedLoadingStatusBadge from '@/components/estimated-loading-status-badge';
 import Heading from '@/components/heading';
+import LoadingReference from '@/components/loading-reference';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useStoredDisplayUnit } from '@/hooks/use-stored-display-unit';
@@ -371,6 +373,9 @@ export default function Dashboard({
                                         <th className="px-4 py-2 font-medium">
                                             Cliente
                                         </th>
+                                        <th className="px-4 py-2 font-medium">
+                                            Status
+                                        </th>
                                         <th className="px-4 py-2 text-right font-medium">
                                             {unitLabel(displayUnit)}
                                         </th>
@@ -388,18 +393,30 @@ export default function Dashboard({
                                                 key={loading.id}
                                                 className="border-b last:border-0"
                                             >
-                                                <td className="px-4 py-2 font-mono text-xs">
+                                                <td className="px-4 py-2">
                                                     <Link
                                                         href={estimateShow(
                                                             loading.id,
                                                         )}
                                                         className="underline-offset-4 hover:underline"
                                                     >
-                                                        {loading.number}
+                                                        <LoadingReference
+                                                            number={
+                                                                loading.number
+                                                            }
+                                                            caixaNumber={
+                                                                loading.caixa_number
+                                                            }
+                                                        />
                                                     </Link>
                                                 </td>
                                                 <td className="px-4 py-2">
                                                     {loading.customer?.name}
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    <EstimatedLoadingStatusBadge
+                                                        status={loading.status}
+                                                    />
                                                 </td>
                                                 <td className="px-4 py-2 text-right font-medium">
                                                     {formatQty(qty)}{' '}
@@ -411,7 +428,7 @@ export default function Dashboard({
                                     {recentEstimates.length === 0 && (
                                         <tr>
                                             <td
-                                                colSpan={3}
+                                                colSpan={4}
                                                 className="px-4 py-8 text-center text-muted-foreground"
                                             >
                                                 Nenhum carregamento hoje.

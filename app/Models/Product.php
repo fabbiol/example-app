@@ -103,6 +103,14 @@ class Product extends Model
     }
 
     /**
+     * @return HasMany<EstimatedLoadingItem, $this>
+     */
+    public function estimatedLoadingItems(): HasMany
+    {
+        return $this->hasMany(EstimatedLoadingItem::class);
+    }
+
+    /**
      * @return HasMany<ProductionEntry, $this>
      */
     public function productionEntries(): HasMany

@@ -1,4 +1,5 @@
 import { Form, Head, Link } from '@inertiajs/react';
+import { Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import EstimatedLoadingController from '@/actions/App/Http/Controllers/EstimatedLoadingController';
 import Heading from '@/components/heading';
@@ -8,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { formatQty, formatQtyInput, formatQtyWithUnit } from '@/lib/quantity';
 import { create, index } from '@/routes/estimated-loadings';
-import type { Option, Order, Product } from '@/types';
+import type { CaixaEntry, Option, Order, Product } from '@/types';
 
 type CustomerOption = { id: number; name: string };
 type ProductOption = Pick<
@@ -29,6 +30,12 @@ type OpenOrder = Pick<
     customer?: CustomerOption;
     product?: ProductOption;
 };
+type ProductLine = {
+    key: string;
+    product_id: string;
+    input_unit: 'm3' | 'ton';
+    quantity_input: string;
+};
 
 const statusLabel = {
     open: 'Aberto',
@@ -38,56 +45,119 @@ const statusLabel = {
     cancelled: 'Cancelado',
 } as const;
 
-function suggestedBuckets(
-    remainingInProductUnit: number,
-    productUnit: 'ton' | 'm3',
-    density: number,
-    bucketCapacityM3: number,
-): number {
-    if (remainingInProductUnit <= 0 || bucketCapacityM3 <= 0 || density <= 0) {
-        return 0;
+function formatMoney(value: string): string {
+    return Number(value).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+    });
+}
+
+function formatCaixaDate(value: string): string {
+    return new Date(`${value}T12:00:00`).toLocaleDateString('pt-BR');
+}
+
+function caixaEntryLabel(entry: CaixaEntry): string {
+    return `#${entry.descricao} · ${formatCaixaDate(entry.data)} · ${entry.tipo_label} · ${formatMoney(entry.valor)}`;
+}
+
+function normalizePedidoQuery(value: string): string {
+    return value.trim().replace(/^#/, '');
+}
+
+function caixaEntryMatches(entry: CaixaEntry, query: string): boolean {
+    const normalized = normalizePedidoQuery(query).toLowerCase();
+
+    if (normalized === '') {
+        return true;
     }
 
-    const remainingM3 =
-        productUnit === 'm3'
-            ? remainingInProductUnit
-            : remainingInProductUnit / density;
+    return [
+        entry.descricao,
+        `#${entry.descricao}`,
+        String(entry.id),
+        entry.tipo,
+        entry.tipo_label,
+        entry.valor,
+        formatMoney(entry.valor),
+        formatCaixaDate(entry.data),
+        entry.metodo_pagamento ?? '',
+    ]
+        .join(' ')
+        .toLowerCase()
+        .includes(normalized);
+}
 
-    return Math.max(1, Math.ceil(remainingM3 / bucketCapacityM3 - 1e-9));
+function nextLineKey(): string {
+    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function emptyLine(): ProductLine {
+    return {
+        key: nextLineKey(),
+        product_id: '',
+        input_unit: 'm3',
+        quantity_input: '',
+    };
+}
+
+function linePreview(
+    line: ProductLine,
+    products: ProductOption[],
+): { m3: string; ton: string } | null {
+    const product = products.find(
+        (item) => String(item.id) === line.product_id,
+    );
+    const quantity = Number(line.quantity_input);
+    const density = Number(product?.density ?? 0);
+
+    if (!product || !quantity || density <= 0) {
+        return null;
+    }
+
+    if (line.input_unit === 'm3') {
+        return {
+            m3: formatQty(quantity),
+            ton: formatQty(quantity * density),
+        };
+    }
+
+    return {
+        m3: formatQty(quantity / density),
+        ton: formatQty(quantity),
+    };
 }
 
 export default function EstimatedLoadingsCreate({
     customers,
     products,
+    caixa_entries: caixaEntries,
+    caixa_error: caixaError,
     orders,
     units,
-    defaults,
 }: {
     customers: CustomerOption[];
     products: ProductOption[];
+    caixa_entries: CaixaEntry[];
+    caixa_error: string | null;
     orders: OpenOrder[];
     units: Option[];
     defaults: { density: number; bucket_capacity_m3: number };
 }) {
+    const [caixaId, setCaixaId] = useState('');
+    const [caixaQuery, setCaixaQuery] = useState('');
     const [orderId, setOrderId] = useState('');
-    const [productId, setProductId] = useState('');
-    const [mode, setMode] = useState<'quantity' | 'buckets'>('buckets');
-    const [inputUnit, setInputUnit] = useState<'m3' | 'ton'>('m3');
-    const [quantityInput, setQuantityInput] = useState('');
-    const [bucketsCount, setBucketsCount] = useState('');
-    const [bucketCapacity, setBucketCapacity] = useState(
-        String(defaults.bucket_capacity_m3),
-    );
+    const [lines, setLines] = useState<ProductLine[]>([emptyLine()]);
     const [vehiclePlate, setVehiclePlate] = useState('');
 
+    const selectedCaixa = caixaEntries.find(
+        (entry) => String(entry.id) === caixaId,
+    );
+    const filteredCaixaEntries = useMemo(() => {
+        return caixaEntries.filter((entry) =>
+            caixaEntryMatches(entry, caixaQuery),
+        );
+    }, [caixaEntries, caixaQuery]);
     const selectedOrder = orders.find((order) => String(order.id) === orderId);
-    const selectedProduct =
-        selectedOrder?.product ??
-        products.find((product) => String(product.id) === productId);
-
-    const density = selectedProduct
-        ? Number(selectedProduct.density)
-        : defaults.density;
 
     const orderSummary = useMemo(() => {
         if (!selectedOrder || !selectedOrder.product) {
@@ -98,68 +168,28 @@ export default function EstimatedLoadingsCreate({
         const requested = Number(selectedOrder.quantity_requested);
         const loaded = Number(selectedOrder.quantity_loaded);
         const remaining = Math.max(0, requested - loaded);
-        const capacity = Number(product.bucket_capacity_m3);
         const productDensity = Number(product.density);
-        const buckets = suggestedBuckets(
-            remaining,
-            product.unit,
-            productDensity,
-            capacity,
-        );
-
-        const remainingM3 =
-            product.unit === 'm3' ? remaining : remaining / productDensity;
-        const remainingTon =
-            product.unit === 'ton' ? remaining : remaining * productDensity;
 
         return {
             requested,
             loaded,
             remaining,
-            remainingM3,
-            remainingTon,
-            buckets,
-            capacity,
+            remainingM3:
+                product.unit === 'm3' ? remaining : remaining / productDensity,
+            remainingTon:
+                product.unit === 'ton' ? remaining : remaining * productDensity,
             unit: product.unit,
             stock: Number(product.stock_quantity),
         };
     }, [selectedOrder]);
 
-    const preview = useMemo(() => {
-        if (mode === 'buckets') {
-            const buckets = Number(bucketsCount);
-            const capacity = Number(bucketCapacity);
-
-            if (!buckets || !capacity) {
-                return null;
-            }
-
-            const m3 = buckets * capacity;
-
-            return {
-                m3: formatQty(m3),
-                ton: formatQty(m3 * density),
-            };
-        }
-
-        const value = Number(quantityInput);
-
-        if (!value) {
-            return null;
-        }
-
-        if (inputUnit === 'm3') {
-            return {
-                m3: formatQty(value),
-                ton: formatQty(value * density),
-            };
-        }
-
-        return {
-            m3: formatQty(value / density),
-            ton: formatQty(value),
-        };
-    }, [mode, bucketsCount, bucketCapacity, quantityInput, inputUnit, density]);
+    const updateLine = (key: string, patch: Partial<ProductLine>) => {
+        setLines((current) =>
+            current.map((line) =>
+                line.key === key ? { ...line, ...patch } : line,
+            ),
+        );
+    };
 
     return (
         <>
@@ -168,20 +198,132 @@ export default function EstimatedLoadingsCreate({
             <div className="flex flex-col gap-6 p-4">
                 <Heading
                     title="Novo carregamento"
-                    description="Ao escolher o pedido, a quantidade de conchas e os dados restantes são preenchidos automaticamente"
+                    description="O número do pedido vem do caixa e só pode ser usado uma vez. Informe um ou mais produtos apenas com a quantidade."
                 />
 
                 <Form
                     {...EstimatedLoadingController.store.form()}
-                    className="max-w-xl space-y-6"
+                    className="max-w-2xl space-y-6"
                 >
                     {({ errors, processing }) => (
                         <>
-                            <input type="hidden" name="mode" value={mode} />
+                            <div className="grid gap-2">
+                                <Label htmlFor="caixa_query">
+                                    Pedido do caixa (número)
+                                </Label>
+                                <input
+                                    type="hidden"
+                                    name="caixa_id"
+                                    value={caixaId}
+                                />
+                                <Input
+                                    id="caixa_query"
+                                    value={caixaQuery}
+                                    onChange={(event) => {
+                                        const value = event.target.value;
+                                        setCaixaQuery(value);
+                                        const typed =
+                                            normalizePedidoQuery(value);
+                                        const exact = caixaEntries.find(
+                                            (entry) =>
+                                                entry.descricao.trim() ===
+                                                typed,
+                                        );
+                                        setCaixaId(
+                                            exact ? String(exact.id) : '',
+                                        );
+                                    }}
+                                    placeholder="Digite o número do pedido no MarketUp"
+                                    autoComplete="off"
+                                />
+                                <div
+                                    className="max-h-64 overflow-y-auto rounded-md border border-input bg-background"
+                                    role="listbox"
+                                    aria-label="Pedidos do caixa"
+                                >
+                                    <button
+                                        type="button"
+                                        role="option"
+                                        aria-selected={caixaId === ''}
+                                        onClick={() => {
+                                            setCaixaId('');
+                                            setCaixaQuery('');
+                                        }}
+                                        className={`flex w-full px-3 py-2.5 text-left text-sm ${
+                                            caixaId === ''
+                                                ? 'bg-muted'
+                                                : 'hover:bg-muted/60'
+                                        }`}
+                                    >
+                                        Carregamento avulso (sem pedido)
+                                    </button>
+                                    {filteredCaixaEntries.map((entry) => {
+                                        const selected =
+                                            String(entry.id) === caixaId;
+
+                                        return (
+                                            <button
+                                                key={entry.id}
+                                                type="button"
+                                                role="option"
+                                                aria-selected={selected}
+                                                onClick={() => {
+                                                    setCaixaId(
+                                                        String(entry.id),
+                                                    );
+                                                    setCaixaQuery(
+                                                        entry.descricao,
+                                                    );
+                                                }}
+                                                className={`flex w-full border-t border-input px-3 py-2.5 text-left text-sm ${
+                                                    selected
+                                                        ? 'bg-muted'
+                                                        : 'hover:bg-muted/60'
+                                                }`}
+                                            >
+                                                {caixaEntryLabel(entry)}
+                                            </button>
+                                        );
+                                    })}
+                                    {caixaEntries.length > 0 &&
+                                        filteredCaixaEntries.length === 0 && (
+                                            <p className="border-t border-input px-3 py-2.5 text-sm text-muted-foreground">
+                                                Nenhum pedido encontrado para
+                                                &ldquo;{caixaQuery}&rdquo;.
+                                            </p>
+                                        )}
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    {caixaError
+                                        ? caixaError
+                                        : caixaEntries.length === 0
+                                          ? 'Nenhum número disponível no caixa. Siga com o carregamento avulso.'
+                                          : 'Só entram lançamentos com tipo diferente de saída. Cada número some depois de usado. Lista do mais novo para o mais antigo; digite para filtrar.'}
+                                </p>
+                                <InputError message={errors.caixa_id} />
+                            </div>
+
+                            {selectedCaixa && (
+                                <div className="space-y-2 rounded-md border bg-muted/30 px-3 py-3 text-sm">
+                                    <p className="font-medium">
+                                        Pedido #{selectedCaixa.descricao} ·{' '}
+                                        {selectedCaixa.tipo_label}
+                                    </p>
+                                    <p className="text-muted-foreground">
+                                        {formatCaixaDate(selectedCaixa.data)}
+                                        {selectedCaixa.metodo_pagamento
+                                            ? ` · ${selectedCaixa.metodo_pagamento}`
+                                            : ''}
+                                    </p>
+                                    <p className="font-medium">
+                                        {formatMoney(selectedCaixa.valor)}
+                                    </p>
+                                </div>
+                            )}
 
                             <div className="grid gap-2">
                                 <Label htmlFor="order_id">
-                                    Pedido (opcional)
+                                    Pedido interno da pá (opcional)
                                 </Label>
                                 <select
                                     id="order_id"
@@ -190,17 +332,9 @@ export default function EstimatedLoadingsCreate({
                                     onChange={(event) => {
                                         const nextOrderId = event.target.value;
                                         setOrderId(nextOrderId);
-                                        setProductId('');
 
                                         if (!nextOrderId) {
-                                            setBucketsCount('');
-                                            setQuantityInput('');
                                             setVehiclePlate('');
-                                            setBucketCapacity(
-                                                String(
-                                                    defaults.bucket_capacity_m3,
-                                                ),
-                                            );
 
                                             return;
                                         }
@@ -220,29 +354,23 @@ export default function EstimatedLoadingsCreate({
                                             Number(order.quantity_requested) -
                                                 Number(order.quantity_loaded),
                                         );
-                                        const buckets = suggestedBuckets(
-                                            remaining,
-                                            product.unit,
-                                            Number(product.density),
-                                            Number(product.bucket_capacity_m3),
-                                        );
 
-                                        setBucketCapacity(
-                                            String(product.bucket_capacity_m3),
-                                        );
-                                        setInputUnit(product.unit);
                                         setVehiclePlate(
                                             order.vehicle_plate ?? '',
                                         );
-                                        setMode('buckets');
-                                        setBucketsCount(
-                                            buckets > 0 ? String(buckets) : '',
-                                        );
-                                        setQuantityInput(
-                                            remaining > 0
-                                                ? formatQtyInput(remaining)
-                                                : '',
-                                        );
+                                        setLines([
+                                            {
+                                                key: nextLineKey(),
+                                                product_id: String(product.id),
+                                                input_unit: product.unit,
+                                                quantity_input:
+                                                    remaining > 0
+                                                        ? formatQtyInput(
+                                                              remaining,
+                                                          )
+                                                        : '',
+                                            },
+                                        ]);
                                     }}
                                     className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
                                 >
@@ -292,32 +420,10 @@ export default function EstimatedLoadingsCreate({
                                         </div>
                                         <div>
                                             <dt className="text-xs tracking-wide uppercase">
-                                                Produto
+                                                Produto do pedido
                                             </dt>
                                             <dd className="text-foreground">
                                                 {selectedOrder.product?.name}
-                                            </dd>
-                                        </div>
-                                        <div>
-                                            <dt className="text-xs tracking-wide uppercase">
-                                                Solicitado
-                                            </dt>
-                                            <dd className="text-foreground">
-                                                {formatQtyWithUnit(
-                                                    orderSummary.requested,
-                                                    orderSummary.unit,
-                                                )}
-                                            </dd>
-                                        </div>
-                                        <div>
-                                            <dt className="text-xs tracking-wide uppercase">
-                                                Já carregado
-                                            </dt>
-                                            <dd className="text-foreground">
-                                                {formatQtyWithUnit(
-                                                    orderSummary.loaded,
-                                                    orderSummary.unit,
-                                                )}
                                             </dd>
                                         </div>
                                         <div>
@@ -344,18 +450,6 @@ export default function EstimatedLoadingsCreate({
                                         </div>
                                         <div>
                                             <dt className="text-xs tracking-wide uppercase">
-                                                Conchas sugeridas
-                                            </dt>
-                                            <dd className="font-medium text-foreground">
-                                                {orderSummary.buckets} ×{' '}
-                                                {formatQty(
-                                                    orderSummary.capacity,
-                                                )}{' '}
-                                                m³
-                                            </dd>
-                                        </div>
-                                        <div>
-                                            <dt className="text-xs tracking-wide uppercase">
                                                 Estoque atual
                                             </dt>
                                             <dd className="text-foreground">
@@ -365,265 +459,259 @@ export default function EstimatedLoadingsCreate({
                                                 )}
                                             </dd>
                                         </div>
-                                        {selectedOrder.destination && (
-                                            <div>
-                                                <dt className="text-xs tracking-wide uppercase">
-                                                    Destino
-                                                </dt>
-                                                <dd className="text-foreground">
-                                                    {selectedOrder.destination}
-                                                </dd>
-                                            </div>
-                                        )}
                                     </dl>
                                 </div>
                             )}
 
                             {!selectedOrder && (
-                                <>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="customer_id">
-                                            Cliente
-                                        </Label>
-                                        <select
-                                            id="customer_id"
-                                            name="customer_id"
-                                            required
-                                            defaultValue=""
-                                            className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
-                                        >
-                                            <option value="" disabled>
-                                                Selecione
+                                <div className="grid gap-2">
+                                    <Label htmlFor="customer_id">Cliente</Label>
+                                    <select
+                                        id="customer_id"
+                                        name="customer_id"
+                                        required
+                                        defaultValue=""
+                                        className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
+                                    >
+                                        <option value="" disabled>
+                                            Selecione
+                                        </option>
+                                        {customers.map((customer) => (
+                                            <option
+                                                key={customer.id}
+                                                value={customer.id}
+                                            >
+                                                {customer.name}
                                             </option>
-                                            {customers.map((customer) => (
-                                                <option
-                                                    key={customer.id}
-                                                    value={customer.id}
-                                                >
-                                                    {customer.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <InputError
-                                            message={errors.customer_id}
-                                        />
-                                    </div>
+                                        ))}
+                                    </select>
+                                    <InputError message={errors.customer_id} />
+                                </div>
+                            )}
 
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="product_id">
-                                            Produto
-                                        </Label>
-                                        <select
-                                            id="product_id"
-                                            name="product_id"
-                                            required
-                                            value={productId}
-                                            onChange={(event) => {
-                                                const nextProductId =
-                                                    event.target.value;
-                                                setProductId(nextProductId);
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between gap-2">
+                                    <Label>Produtos</Label>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() =>
+                                            setLines((current) => [
+                                                ...current,
+                                                emptyLine(),
+                                            ])
+                                        }
+                                    >
+                                        <Plus />
+                                        Adicionar produto
+                                    </Button>
+                                </div>
+                                <InputError message={errors.items} />
 
-                                                if (orderId) {
-                                                    return;
-                                                }
+                                {lines.map((line, index) => {
+                                    const product = products.find(
+                                        (item) =>
+                                            String(item.id) === line.product_id,
+                                    );
+                                    const preview = linePreview(line, products);
+                                    const usedIds = new Set(
+                                        lines
+                                            .filter(
+                                                (item) =>
+                                                    item.key !== line.key &&
+                                                    item.product_id !== '',
+                                            )
+                                            .map((item) => item.product_id),
+                                    );
 
-                                                const product = products.find(
-                                                    (item) =>
-                                                        String(item.id) ===
-                                                        nextProductId,
-                                                );
-
-                                                if (!product) {
-                                                    return;
-                                                }
-
-                                                setBucketCapacity(
-                                                    String(
-                                                        product.bucket_capacity_m3,
-                                                    ),
-                                                );
-                                                setInputUnit(product.unit);
-                                            }}
-                                            className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
+                                    return (
+                                        <div
+                                            key={line.key}
+                                            className="space-y-3 rounded-md border p-3"
                                         >
-                                            <option value="" disabled>
-                                                Selecione
-                                            </option>
-                                            {products.map((product) => (
-                                                <option
-                                                    key={product.id}
-                                                    value={product.id}
+                                            <div className="flex items-start justify-between gap-2">
+                                                <p className="text-sm font-medium">
+                                                    Produto {index + 1}
+                                                </p>
+                                                {lines.length > 1 && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            setLines((current) =>
+                                                                current.filter(
+                                                                    (item) =>
+                                                                        item.key !==
+                                                                        line.key,
+                                                                ),
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 />
+                                                        Remover
+                                                    </Button>
+                                                )}
+                                            </div>
+
+                                            <div className="grid gap-2">
+                                                <Label
+                                                    htmlFor={`items-${index}-product`}
                                                 >
-                                                    {product.name} (
-                                                    {formatQtyWithUnit(
-                                                        product.stock_quantity,
-                                                        product.unit,
-                                                    )}
+                                                    Produto
+                                                </Label>
+                                                <select
+                                                    id={`items-${index}-product`}
+                                                    name={`items[${index}][product_id]`}
+                                                    required
+                                                    value={line.product_id}
+                                                    onChange={(event) => {
+                                                        const nextProductId =
+                                                            event.target.value;
+                                                        const nextProduct =
+                                                            products.find(
+                                                                (item) =>
+                                                                    String(
+                                                                        item.id,
+                                                                    ) ===
+                                                                    nextProductId,
+                                                            );
+
+                                                        updateLine(line.key, {
+                                                            product_id:
+                                                                nextProductId,
+                                                            input_unit:
+                                                                nextProduct?.unit ??
+                                                                line.input_unit,
+                                                        });
+                                                    }}
+                                                    className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
+                                                >
+                                                    <option value="" disabled>
+                                                        Selecione
+                                                    </option>
+                                                    {products.map((item) => (
+                                                        <option
+                                                            key={item.id}
+                                                            value={item.id}
+                                                            disabled={usedIds.has(
+                                                                String(item.id),
+                                                            )}
+                                                        >
+                                                            {item.name} (
+                                                            {formatQtyWithUnit(
+                                                                item.stock_quantity,
+                                                                item.unit,
+                                                            )}
+                                                            )
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <InputError
+                                                    message={
+                                                        errors[
+                                                            `items.${index}.product_id`
+                                                        ]
+                                                    }
+                                                />
+                                            </div>
+
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <div className="grid gap-2">
+                                                    <Label
+                                                        htmlFor={`items-${index}-unit`}
+                                                    >
+                                                        Unidade
+                                                    </Label>
+                                                    <select
+                                                        id={`items-${index}-unit`}
+                                                        name={`items[${index}][input_unit]`}
+                                                        value={line.input_unit}
+                                                        onChange={(event) =>
+                                                            updateLine(
+                                                                line.key,
+                                                                {
+                                                                    input_unit:
+                                                                        event
+                                                                            .target
+                                                                            .value as
+                                                                            | 'm3'
+                                                                            | 'ton',
+                                                                },
+                                                            )
+                                                        }
+                                                        className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
+                                                    >
+                                                        {units.map((unit) => (
+                                                            <option
+                                                                key={unit.value}
+                                                                value={
+                                                                    unit.value
+                                                                }
+                                                            >
+                                                                {unit.label}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <InputError
+                                                        message={
+                                                            errors[
+                                                                `items.${index}.input_unit`
+                                                            ]
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label
+                                                        htmlFor={`items-${index}-qty`}
+                                                    >
+                                                        Quantidade
+                                                    </Label>
+                                                    <Input
+                                                        id={`items-${index}-qty`}
+                                                        name={`items[${index}][quantity_input]`}
+                                                        type="number"
+                                                        step="0.001"
+                                                        min="0.001"
+                                                        required
+                                                        value={
+                                                            line.quantity_input
+                                                        }
+                                                        onChange={(event) =>
+                                                            updateLine(
+                                                                line.key,
+                                                                {
+                                                                    quantity_input:
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                },
+                                                            )
+                                                        }
+                                                    />
+                                                    <InputError
+                                                        message={
+                                                            errors[
+                                                                `items.${index}.quantity_input`
+                                                            ]
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {product && preview && (
+                                                <p className="text-xs text-muted-foreground">
+                                                    {product.name}: {preview.m3}{' '}
+                                                    m³ ≈ {preview.ton} t
+                                                    (densidade {product.density}
                                                     )
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <InputError
-                                            message={errors.product_id}
-                                        />
-                                    </div>
-                                </>
-                            )}
-
-                            {selectedProduct && !selectedOrder && (
-                                <p className="rounded-md border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-                                    {selectedProduct.name}: densidade{' '}
-                                    {selectedProduct.density} t/m³ · concha
-                                    padrão {selectedProduct.bucket_capacity_m3}{' '}
-                                    m³
-                                </p>
-                            )}
-
-                            <div className="grid gap-2">
-                                <Label>Como estimar?</Label>
-                                <div className="flex gap-2">
-                                    <Button
-                                        type="button"
-                                        variant={
-                                            mode === 'buckets'
-                                                ? 'default'
-                                                : 'outline'
-                                        }
-                                        onClick={() => setMode('buckets')}
-                                    >
-                                        Por conchas
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant={
-                                            mode === 'quantity'
-                                                ? 'default'
-                                                : 'outline'
-                                        }
-                                        onClick={() => setMode('quantity')}
-                                    >
-                                        Por quantidade
-                                    </Button>
-                                </div>
+                                                </p>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
-
-                            {mode === 'buckets' ? (
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="buckets_count">
-                                            Nº de conchas
-                                        </Label>
-                                        <Input
-                                            id="buckets_count"
-                                            name="buckets_count"
-                                            type="number"
-                                            min="1"
-                                            required
-                                            value={bucketsCount}
-                                            onChange={(event) =>
-                                                setBucketsCount(
-                                                    event.target.value,
-                                                )
-                                            }
-                                        />
-                                        <InputError
-                                            message={errors.buckets_count}
-                                        />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="bucket_capacity_m3">
-                                            Capacidade da concha (m³)
-                                        </Label>
-                                        <Input
-                                            id="bucket_capacity_m3"
-                                            name="bucket_capacity_m3"
-                                            type="number"
-                                            step="0.001"
-                                            min="0.001"
-                                            required
-                                            value={bucketCapacity}
-                                            onChange={(event) =>
-                                                setBucketCapacity(
-                                                    event.target.value,
-                                                )
-                                            }
-                                        />
-                                        <InputError
-                                            message={errors.bucket_capacity_m3}
-                                        />
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="input_unit">
-                                            Unidade informada
-                                        </Label>
-                                        <select
-                                            id="input_unit"
-                                            name="input_unit"
-                                            value={inputUnit}
-                                            onChange={(event) =>
-                                                setInputUnit(
-                                                    event.target.value as
-                                                        'm3' | 'ton',
-                                                )
-                                            }
-                                            className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs"
-                                        >
-                                            {units.map((unit) => (
-                                                <option
-                                                    key={unit.value}
-                                                    value={unit.value}
-                                                >
-                                                    {unit.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <InputError
-                                            message={errors.input_unit}
-                                        />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="quantity_input">
-                                            Quantidade
-                                        </Label>
-                                        <Input
-                                            id="quantity_input"
-                                            name="quantity_input"
-                                            type="number"
-                                            step="0.001"
-                                            min="0.001"
-                                            required
-                                            value={quantityInput}
-                                            onChange={(event) =>
-                                                setQuantityInput(
-                                                    event.target.value,
-                                                )
-                                            }
-                                        />
-                                        <InputError
-                                            message={errors.quantity_input}
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            {preview && (
-                                <div className="rounded-md border bg-muted/30 px-3 py-3 text-sm">
-                                    <p className="font-medium">
-                                        Prévia da conversão
-                                    </p>
-                                    <p className="mt-1 text-muted-foreground">
-                                        {preview.m3} m³ ≈ {preview.ton} t
-                                        (densidade {density})
-                                    </p>
-                                    <p className="mt-1 text-muted-foreground">
-                                        O estoque e o pedido serão baixados na
-                                        unidade do produto.
-                                    </p>
-                                </div>
-                            )}
 
                             <div className="grid gap-2">
                                 <Label htmlFor="vehicle_plate">Placa</Label>
@@ -655,7 +743,6 @@ export default function EstimatedLoadingsCreate({
                                     id="notes"
                                     name="notes"
                                     rows={3}
-                                    placeholder="Ex.: operador João, pilha norte, 8 conchas cheias"
                                     className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs"
                                 />
                                 <InputError message={errors.notes} />

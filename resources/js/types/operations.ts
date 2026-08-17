@@ -87,10 +87,27 @@ export type WeighTicket = {
     order?: Pick<Order, 'id' | 'status'> | null;
 };
 
+export type EstimatedLoadingStatus = 'released' | 'loading' | 'loaded';
+
+export type EstimatedLoadingItem = {
+    id: number;
+    product_id: number;
+    sort_order: number;
+    input_unit: 'ton' | 'm3';
+    quantity_m3: string;
+    quantity_ton: string;
+    quantity: string;
+    density: string;
+    loader_loaded_at?: string | null;
+    product?: Pick<Product, 'id' | 'name' | 'unit'>;
+};
+
 export type EstimatedLoading = {
     id: number;
     number: string;
     order_id: number | null;
+    caixa_id: number | null;
+    caixa_number: string | null;
     customer_id: number;
     product_id: number;
     user_id: number | null;
@@ -106,9 +123,22 @@ export type EstimatedLoading = {
     notes: string | null;
     created_at: string;
     updated_at: string;
+    status: EstimatedLoadingStatus;
     customer?: Pick<Customer, 'id' | 'name'>;
     product?: Pick<Product, 'id' | 'name' | 'unit'>;
     order?: Pick<Order, 'id' | 'status'> | null;
+    items?: EstimatedLoadingItem[];
+};
+
+export type CaixaEntry = {
+    id: number;
+    data: string;
+    descricao: string;
+    valor: string;
+    tipo: string;
+    tipo_label: string;
+    metodo_pagamento: string | null;
+    cliente_haver: string | null;
 };
 
 export type CrushingCircuitYield = {

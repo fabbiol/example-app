@@ -1,7 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { formatQty, formatQtyWithUnit } from '@/lib/quantity';
+import { formatQty, formatQtyWithUnit, loadingProductNames } from '@/lib/quantity';
 import { index, show } from '@/routes/loader';
 import type { EstimatedLoading } from '@/types';
 
@@ -26,8 +26,13 @@ export default function LoaderDone({ loading }: { loading: EstimatedLoading }) {
                     <h1 className="mt-2 text-3xl font-bold">
                         {loading.number}
                     </h1>
+                    {loading.caixa_number ? (
+                        <p className="mt-2 text-xl text-stone-700">
+                            Pedido #{loading.caixa_number}
+                        </p>
+                    ) : null}
                     <p className="mt-3 text-xl text-stone-700">
-                        {loading.product?.name} ·{' '}
+                        {loadingProductNames(loading)} ·{' '}
                         {formatQty(loading.quantity_m3)} m³
                     </p>
                     <p className="mt-2 text-lg text-stone-600">

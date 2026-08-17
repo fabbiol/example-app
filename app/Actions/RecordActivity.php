@@ -155,7 +155,7 @@ class RecordActivity
             $model instanceof Order => ['o pedido', '#'.$model->getKey()],
             $model instanceof ProductionEntry && $model->parent_id !== null => ['o apontamento do circuito', '#'.$model->getKey()],
             $model instanceof ProductionEntry => ['o apontamento de produção', '#'.$model->getKey()],
-            $model instanceof EstimatedLoading => ['o carregamento', $model->number !== '' ? $model->number : '#'.$model->getKey()],
+            $model instanceof EstimatedLoading => ['o carregamento', $model->referenceLabel()],
             $model instanceof WeighTicket => ['o ticket de balança', $model->number !== '' ? $model->number : '#'.$model->getKey()],
             $model instanceof Product => ['o produto', (string) $model->name],
             $model instanceof Customer => ['o cliente', (string) $model->name],

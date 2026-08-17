@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\ConfirmLoaderEstimatedLoadingItem;
 use App\Actions\RecordEstimatedLoadingAction;
 use App\Enums\OrderStatus;
 use App\Enums\ProductUnit;
 use App\Http\Requests\StoreLoaderEstimatedLoadingRequest;
 use App\Models\EstimatedLoading;
+use App\Models\EstimatedLoadingItem;
 use App\Models\Order;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -40,8 +42,35 @@ class LoaderOperatorController extends Controller
                 ];
             });
 
+        $day = now()->startOfDay();
+        $released = EstimatedLoadingItem::query()
+            ->with([
+                'product:id,name,unit',
+                'loading:id,number,caixa_number,vehicle_plate,customer_id,loaded_at',
+                'loading.customer:id,name',
+            ])
+            ->whereNull('loader_loaded_at')
+            ->whereHas(
+                'loading',
+                fn ($query) => $query->whereBetween('loaded_at', [$day, $day->copy()->endOfDay()]),
+            )
+            ->orderBy('id')
+            ->get()
+            ->map(fn (EstimatedLoadingItem $item) => [
+                'id' => $item->id,
+                'loading_id' => $item->estimated_loading_id,
+                'number' => $item->loading?->number,
+                'caixa_number' => $item->loading?->caixa_number,
+                'vehicle_plate' => $item->loading?->vehicle_plate,
+                'quantity_m3' => $item->quantity_m3,
+                'quantity_ton' => $item->quantity_ton,
+                'quantity' => $item->quantity,
+                'customer' => $item->loading?->customer,
+                'product' => $item->product,
+            ]);
+
         $recent = EstimatedLoading::query()
-            ->with(['customer:id,name', 'product:id,name,unit', 'order:id'])
+            ->with(['customer:id,name', 'product:id,name,unit', 'order:id', 'items.product:id,name,unit'])
             ->where('user_id', auth()->id())
             ->latest('loaded_at')
             ->limit(5)
@@ -49,6 +78,7 @@ class LoaderOperatorController extends Controller
 
         return Inertia::render('loader/index', [
             'orders' => $orders,
+            'released' => $released,
             'recent' => $recent,
             'operator' => [
                 'name' => auth()->user()?->name,
@@ -128,6 +158,7 @@ class LoaderOperatorController extends Controller
                 'quantity_input' => $remainingProduct,
                 'notes' => $request->validated('notes'),
                 'user_id' => $request->user()?->id,
+                'confirmed_by_loader' => true,
             ]);
         } else {
             $loading = $action->handle([
@@ -138,6 +169,7 @@ class LoaderOperatorController extends Controller
                 'quantity_input' => $inputM3,
                 'notes' => $request->validated('notes'),
                 'user_id' => $request->user()?->id,
+                'confirmed_by_loader' => true,
             ]);
         }
 
@@ -154,11 +186,57 @@ class LoaderOperatorController extends Controller
 
     public function done(EstimatedLoading $estimatedLoading): Response
     {
-        $estimatedLoading->load(['customer:id,name', 'product:id,name,unit', 'order:id,status']);
+        $estimatedLoading->load(['customer:id,name', 'product:id,name,unit', 'order:id,status', 'items.product:id,name,unit']);
 
         return Inertia::render('loader/done', [
             'loading' => $estimatedLoading,
         ]);
+    }
+
+    public function showItem(EstimatedLoadingItem $estimatedLoadingItem): Response|RedirectResponse
+    {
+        if ($estimatedLoadingItem->loader_loaded_at !== null) {
+            return redirect()
+                ->route('loader.index')
+                ->with('success', 'Este produto já foi carregado.');
+        }
+
+        $estimatedLoadingItem->load([
+            'product:id,name,unit',
+            'loading:id,number,caixa_number,vehicle_plate,customer_id',
+            'loading.customer:id,name',
+        ]);
+
+        return Inertia::render('loader/item', [
+            'item' => [
+                'id' => $estimatedLoadingItem->id,
+                'number' => $estimatedLoadingItem->loading?->number,
+                'caixa_number' => $estimatedLoadingItem->loading?->caixa_number,
+                'vehicle_plate' => $estimatedLoadingItem->loading?->vehicle_plate,
+                'quantity_m3' => $estimatedLoadingItem->quantity_m3,
+                'quantity_ton' => $estimatedLoadingItem->quantity_ton,
+                'quantity' => $estimatedLoadingItem->quantity,
+                'customer' => $estimatedLoadingItem->loading?->customer,
+                'product' => $estimatedLoadingItem->product,
+            ],
+        ]);
+    }
+
+    public function completeItem(
+        EstimatedLoadingItem $estimatedLoadingItem,
+        ConfirmLoaderEstimatedLoadingItem $action,
+    ): RedirectResponse {
+        if ($estimatedLoadingItem->loader_loaded_at !== null) {
+            return redirect()
+                ->route('loader.index')
+                ->with('success', 'Este produto já foi carregado.');
+        }
+
+        $action->handle($estimatedLoadingItem);
+
+        return redirect()
+            ->route('loader.index')
+            ->with('success', 'Produto carregado.');
     }
 
     /**

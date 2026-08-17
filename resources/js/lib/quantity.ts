@@ -79,3 +79,14 @@ export function toDisplayUnit(
         ? quantityInProductUnit
         : quantityInProductUnit * safeDensity;
 }
+
+export function loadingProductNames(loading: {
+    items?: Array<{ product?: { name?: string } | null }> | null;
+    product?: { name?: string } | null;
+}): string {
+    const names = (loading.items ?? [])
+        .map((item) => item.product?.name)
+        .filter((name): name is string => Boolean(name));
+
+    return names.length > 0 ? names.join(', ') : (loading.product?.name ?? '—');
+}

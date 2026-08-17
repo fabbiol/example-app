@@ -74,7 +74,7 @@ class BuildOperationalDashboard
             ->get();
 
         $recentEstimates = EstimatedLoading::query()
-            ->with(['customer:id,name', 'product:id,name,unit'])
+            ->with(['customer:id,name', 'product:id,name,unit', 'items'])
             ->whereBetween('loaded_at', [$day, $dayEnd])
             ->latest('loaded_at')
             ->limit(8)

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\ListAvailableCaixaEntries;
 use App\Actions\RecordEstimatedLoadingAction;
 use App\Actions\ReverseProductOutbound;
 use App\Enums\ProductUnit;
@@ -21,15 +22,17 @@ class EstimatedLoadingController extends Controller
     {
         return Inertia::render('estimated-loadings/index', [
             'loadings' => EstimatedLoading::query()
-                ->with(['customer', 'product', 'order'])
+                ->with(['customer', 'product', 'order', 'items.product'])
                 ->latest('loaded_at')
                 ->paginate(15)
                 ->withQueryString(),
         ]);
     }
 
-    public function create(): Response
+    public function create(ListAvailableCaixaEntries $listAvailableCaixaEntries): Response
     {
+        $caixa = $listAvailableCaixaEntries->handle();
+
         return Inertia::render('estimated-loadings/create', [
             'customers' => Customer::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'products' => Product::query()->where('is_active', true)->orderBy('name')->get([
@@ -40,6 +43,8 @@ class EstimatedLoadingController extends Controller
                 'density',
                 'bucket_capacity_m3',
             ]),
+            'caixa_entries' => $caixa['entries'],
+            'caixa_error' => $caixa['error'],
             'orders' => Order::query()
                 ->with(['customer:id,name', 'product:id,name,unit,stock_quantity,density,bucket_capacity_m3'])
                 ->whereIn('status', ['open', 'scheduled', 'loading'])
@@ -82,7 +87,7 @@ class EstimatedLoadingController extends Controller
 
     public function show(EstimatedLoading $estimatedLoading): Response
     {
-        $estimatedLoading->load(['customer', 'product', 'order', 'user']);
+        $estimatedLoading->load(['customer', 'product', 'order', 'user', 'items.product']);
 
         return Inertia::render('estimated-loadings/show', [
             'loading' => $estimatedLoading,
@@ -93,12 +98,8 @@ class EstimatedLoadingController extends Controller
     {
         DB::transaction(function () use ($estimatedLoading, $reverseOutbound): void {
             $loading = EstimatedLoading::query()
+                ->with('items')
                 ->whereKey($estimatedLoading->id)
-                ->lockForUpdate()
-                ->firstOrFail();
-
-            $product = Product::query()
-                ->whereKey($loading->product_id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
@@ -106,7 +107,19 @@ class EstimatedLoadingController extends Controller
                 ? Order::query()->whereKey($loading->order_id)->lockForUpdate()->first()
                 : null;
 
-            $reverseOutbound->handle($product, (string) $loading->quantity, $order);
+            foreach ($loading->items as $item) {
+                $product = Product::query()
+                    ->whereKey($item->product_id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                $reverseOutbound->handle(
+                    $product,
+                    (string) $item->quantity,
+                    $order?->product_id === $product->id ? $order : null,
+                );
+            }
+
             $loading->delete();
         });
 

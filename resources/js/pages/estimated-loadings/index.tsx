@@ -1,11 +1,12 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import EstimatedLoadingController from '@/actions/App/Http/Controllers/EstimatedLoadingController';
+import EstimatedLoadingStatusBadge from '@/components/estimated-loading-status-badge';
 import FlashMessage from '@/components/flash-message';
 import Heading from '@/components/heading';
 import Pagination from '@/components/pagination';
 import { Button } from '@/components/ui/button';
-import { formatQty } from '@/lib/quantity';
+import { formatQty, loadingProductNames } from '@/lib/quantity';
 import { create, index, show } from '@/routes/estimated-loadings';
 import type { EstimatedLoading, Paginated } from '@/types';
 
@@ -35,10 +36,13 @@ export default function EstimatedLoadingsIndex({
                 <FlashMessage />
 
                 <div className="overflow-x-auto rounded-xl border">
-                    <table className="w-full min-w-[880px] text-left text-sm">
+                    <table className="w-full min-w-[1080px] text-left text-sm">
                         <thead className="border-b bg-muted/40">
                             <tr>
                                 <th className="px-4 py-3 font-medium">Nº</th>
+                                <th className="px-4 py-3 font-medium">
+                                    Pedido
+                                </th>
                                 <th className="px-4 py-3 font-medium">
                                     Cliente
                                 </th>
@@ -48,7 +52,7 @@ export default function EstimatedLoadingsIndex({
                                 <th className="px-4 py-3 font-medium">m³</th>
                                 <th className="px-4 py-3 font-medium">t</th>
                                 <th className="px-4 py-3 font-medium">
-                                    Conchas
+                                    Status
                                 </th>
                                 <th className="px-4 py-3 font-medium">Data</th>
                                 <th className="px-4 py-3 font-medium" />
@@ -63,11 +67,16 @@ export default function EstimatedLoadingsIndex({
                                     <td className="px-4 py-3 font-mono text-xs">
                                         {loading.number}
                                     </td>
+                                    <td className="px-4 py-3 font-mono text-xs">
+                                        {loading.caixa_number
+                                            ? `#${loading.caixa_number}`
+                                            : '—'}
+                                    </td>
                                     <td className="px-4 py-3">
                                         {loading.customer?.name}
                                     </td>
                                     <td className="px-4 py-3">
-                                        {loading.product?.name}
+                                        {loadingProductNames(loading)}
                                     </td>
                                     <td className="px-4 py-3">
                                         {formatQty(loading.quantity_m3)}
@@ -76,7 +85,9 @@ export default function EstimatedLoadingsIndex({
                                         {formatQty(loading.quantity_ton)}
                                     </td>
                                     <td className="px-4 py-3">
-                                        {loading.buckets_count ?? '—'}
+                                        <EstimatedLoadingStatusBadge
+                                            status={loading.status}
+                                        />
                                     </td>
                                     <td className="px-4 py-3">
                                         {new Date(
@@ -120,7 +131,7 @@ export default function EstimatedLoadingsIndex({
                             {loadings.data.length === 0 && (
                                 <tr>
                                     <td
-                                        colSpan={8}
+                                        colSpan={9}
                                         className="px-4 py-8 text-center text-muted-foreground"
                                     >
                                         Nenhum carregamento registrado.

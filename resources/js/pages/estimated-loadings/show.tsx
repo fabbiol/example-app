@@ -1,4 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
+import EstimatedLoadingStatusBadge, {
+    itemStatus,
+} from '@/components/estimated-loading-status-badge';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { formatQty, formatQtyWithUnit, unitLabel } from '@/lib/quantity';
@@ -10,6 +13,9 @@ export default function EstimatedLoadingsShow({
 }: {
     loading: EstimatedLoading;
 }) {
+    const items =
+        loading.items && loading.items.length > 0 ? loading.items : null;
+
     return (
         <>
             <Head title={loading.number} />
@@ -17,7 +23,11 @@ export default function EstimatedLoadingsShow({
             <div className="flex flex-col gap-6 p-4">
                 <Heading
                     title={loading.number}
-                    description="Use estes valores para conferir com o MarketUp. Sem pesagem na balança."
+                    description={
+                        loading.caixa_number
+                            ? `Pedido #${loading.caixa_number}. Use estes valores para conferir com o MarketUp. Sem pesagem na balança.`
+                            : 'Use estes valores para conferir com o MarketUp. Sem pesagem na balança.'
+                    }
                 />
 
                 <dl className="grid gap-4 rounded-xl border p-4 sm:grid-cols-2">
@@ -31,69 +41,29 @@ export default function EstimatedLoadingsShow({
                     </div>
                     <div>
                         <dt className="text-sm text-muted-foreground">
-                            Produto
+                            Pedido
                         </dt>
-                        <dd className="font-medium">
-                            {loading.product?.name} (
-                            {unitLabel(loading.product?.unit)})
+                        <dd>
+                            {loading.caixa_number
+                                ? `#${loading.caixa_number}`
+                                : loading.order_id
+                                  ? `#${loading.order_id}`
+                                  : 'Avulso'}
                         </dd>
                     </div>
                     <div>
                         <dt className="text-sm text-muted-foreground">
-                            Pedido
+                            Status
                         </dt>
-                        <dd>
-                            {loading.order_id
-                                ? `#${loading.order_id}`
-                                : 'Avulso'}
+                        <dd className="mt-1">
+                            <EstimatedLoadingStatusBadge
+                                status={loading.status}
+                            />
                         </dd>
                     </div>
                     <div>
                         <dt className="text-sm text-muted-foreground">Placa</dt>
                         <dd>{loading.vehicle_plate}</dd>
-                    </div>
-                    <div>
-                        <dt className="text-sm text-muted-foreground">
-                            Volume
-                        </dt>
-                        <dd className="text-lg font-semibold">
-                            {formatQty(loading.quantity_m3)} m³
-                        </dd>
-                    </div>
-                    <div>
-                        <dt className="text-sm text-muted-foreground">
-                            Peso equivalente
-                        </dt>
-                        <dd className="text-lg font-semibold">
-                            {formatQty(loading.quantity_ton)} t
-                        </dd>
-                    </div>
-                    <div>
-                        <dt className="text-sm text-muted-foreground">
-                            Baixa no estoque
-                        </dt>
-                        <dd>
-                            {formatQtyWithUnit(
-                                loading.quantity,
-                                loading.product?.unit,
-                            )}
-                        </dd>
-                    </div>
-                    <div>
-                        <dt className="text-sm text-muted-foreground">
-                            Densidade usada
-                        </dt>
-                        <dd>{formatQty(loading.density, 2)} t/m³</dd>
-                    </div>
-                    <div>
-                        <dt className="text-sm text-muted-foreground">
-                            Conchas
-                        </dt>
-                        <dd>
-                            {loading.buckets_count
-                                ? `${loading.buckets_count} × ${formatQty(loading.bucket_capacity_m3)} m³`
-                                : '—'}
-                        </dd>
                     </div>
                     <div>
                         <dt className="text-sm text-muted-foreground">
@@ -105,6 +75,22 @@ export default function EstimatedLoadingsShow({
                             )}
                         </dd>
                     </div>
+                    <div>
+                        <dt className="text-sm text-muted-foreground">
+                            Volume total
+                        </dt>
+                        <dd className="text-lg font-semibold">
+                            {formatQty(loading.quantity_m3)} m³
+                        </dd>
+                    </div>
+                    <div>
+                        <dt className="text-sm text-muted-foreground">
+                            Peso total
+                        </dt>
+                        <dd className="text-lg font-semibold">
+                            {formatQty(loading.quantity_ton)} t
+                        </dd>
+                    </div>
                     <div className="sm:col-span-2">
                         <dt className="text-sm text-muted-foreground">
                             Observações
@@ -112,6 +98,83 @@ export default function EstimatedLoadingsShow({
                         <dd>{loading.notes || '—'}</dd>
                     </div>
                 </dl>
+
+                <div className="overflow-x-auto rounded-xl border">
+                    <table className="w-full text-left text-sm">
+                        <thead className="border-b bg-muted/40">
+                            <tr>
+                                <th className="px-4 py-3 font-medium">
+                                    Produto
+                                </th>
+                                <th className="px-4 py-3 font-medium">m³</th>
+                                <th className="px-4 py-3 font-medium">t</th>
+                                <th className="px-4 py-3 font-medium">
+                                    Baixa no estoque
+                                </th>
+                                <th className="px-4 py-3 font-medium">
+                                    Status
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {(items ?? []).map((item) => (
+                                <tr
+                                    key={item.id}
+                                    className="border-b last:border-0"
+                                >
+                                    <td className="px-4 py-3 font-medium">
+                                        {item.product?.name} (
+                                        {unitLabel(item.product?.unit)})
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {formatQty(item.quantity_m3)}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {formatQty(item.quantity_ton)}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {formatQtyWithUnit(
+                                            item.quantity,
+                                            item.product?.unit,
+                                        )}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <EstimatedLoadingStatusBadge
+                                            status={itemStatus(
+                                                item.loader_loaded_at,
+                                            )}
+                                        />
+                                    </td>
+                                </tr>
+                            ))}
+                            {!items && (
+                                <tr>
+                                    <td className="px-4 py-3 font-medium">
+                                        {loading.product?.name} (
+                                        {unitLabel(loading.product?.unit)})
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {formatQty(loading.quantity_m3)}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {formatQty(loading.quantity_ton)}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {formatQtyWithUnit(
+                                            loading.quantity,
+                                            loading.product?.unit,
+                                        )}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <EstimatedLoadingStatusBadge
+                                            status={loading.status}
+                                        />
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
 
                 <Button variant="outline" asChild className="w-fit">
                     <Link href={index()}>Voltar</Link>

@@ -28,12 +28,14 @@ class EstimatedLoadingFactory extends Factory
         return [
             'number' => 'EST-'.fake()->unique()->numerify('######'),
             'order_id' => null,
+            'caixa_id' => null,
+            'caixa_number' => null,
             'customer_id' => Customer::factory(),
             'product_id' => $product,
             'user_id' => User::factory(),
             'vehicle_plate' => strtoupper(fake()->bothify('???-####')),
-            'buckets_count' => 8,
-            'bucket_capacity_m3' => 1.5,
+            'buckets_count' => null,
+            'bucket_capacity_m3' => null,
             'input_unit' => ProductUnit::CubicMeter,
             'quantity_m3' => $quantities['quantity_m3'],
             'quantity_ton' => $quantities['quantity_ton'],
@@ -42,6 +44,25 @@ class EstimatedLoadingFactory extends Factory
             'loaded_at' => now(),
             'notes' => null,
         ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (EstimatedLoading $loading): void {
+            if ($loading->items()->exists()) {
+                return;
+            }
+
+            $loading->items()->create([
+                'product_id' => $loading->product_id,
+                'sort_order' => 0,
+                'input_unit' => $loading->input_unit,
+                'quantity_m3' => $loading->quantity_m3,
+                'quantity_ton' => $loading->quantity_ton,
+                'quantity' => $loading->quantity,
+                'density' => $loading->density,
+            ]);
+        });
     }
 
     public function forOrder(Order $order): static

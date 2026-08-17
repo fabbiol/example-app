@@ -114,6 +114,27 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        'caixa' => [
+            'driver' => env('CAIXA_DB_CONNECTION', 'mysql'),
+            'url' => env('CAIXA_DB_URL'),
+            'host' => env('CAIXA_DB_HOST', '127.0.0.1'),
+            'port' => env('CAIXA_DB_PORT', '3306'),
+            'database' => env('CAIXA_DB_DATABASE'),
+            'username' => env('CAIXA_DB_USERNAME', 'root'),
+            'password' => env('CAIXA_DB_PASSWORD', ''),
+            'unix_socket' => env('CAIXA_DB_SOCKET', ''),
+            'charset' => env('CAIXA_DB_CHARSET', 'utf8mb4'),
+            'collation' => env('CAIXA_DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'foreign_key_constraints' => env('CAIXA_DB_FOREIGN_KEYS', true),
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
     ],
 
     /*

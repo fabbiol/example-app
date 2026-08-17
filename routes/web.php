@@ -24,6 +24,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [LoaderOperatorController::class, 'index'])->name('index');
         Route::get('/orders/{order}', [LoaderOperatorController::class, 'show'])->name('show');
         Route::post('/orders/{order}/loadings', [LoaderOperatorController::class, 'store'])->name('store');
+        Route::get('/items/{estimatedLoadingItem}', [LoaderOperatorController::class, 'showItem'])->name('items.show');
+        Route::post('/items/{estimatedLoadingItem}', [LoaderOperatorController::class, 'completeItem'])->name('items.complete');
         Route::get('/done/{estimatedLoading}', [LoaderOperatorController::class, 'done'])->name('done');
     });
 

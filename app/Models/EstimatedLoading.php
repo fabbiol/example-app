@@ -2,19 +2,25 @@
 
 namespace App\Models;
 
+use App\Enums\EstimatedLoadingStatus;
 use App\Enums\ProductUnit;
 use App\Models\Concerns\LogsActivity;
 use Database\Factories\EstimatedLoadingFactory;
+use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property string $number
  * @property int|null $order_id
+ * @property int|null $caixa_id
+ * @property string|null $caixa_number
  * @property int $customer_id
  * @property int $product_id
  * @property int|null $user_id
@@ -30,10 +36,13 @@ use Illuminate\Support\Carbon;
  * @property string|null $notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read EstimatedLoadingStatus $status
  */
 #[Fillable([
     'number',
     'order_id',
+    'caixa_id',
+    'caixa_number',
     'customer_id',
     'product_id',
     'user_id',
@@ -48,6 +57,7 @@ use Illuminate\Support\Carbon;
     'loaded_at',
     'notes',
 ])]
+#[Appends(['status'])]
 class EstimatedLoading extends Model
 {
     /** @use HasFactory<EstimatedLoadingFactory> */
@@ -100,5 +110,30 @@ class EstimatedLoading extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return HasMany<EstimatedLoadingItem, $this>
+     */
+    public function items(): HasMany
+    {
+        return $this->hasMany(EstimatedLoadingItem::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function referenceLabel(): string
+    {
+        if (is_string($this->caixa_number) && $this->caixa_number !== '') {
+            return $this->number.' · Pedido #'.$this->caixa_number;
+        }
+
+        return $this->number !== '' ? $this->number : '#'.$this->getKey();
+    }
+
+    /**
+     * @return Attribute<EstimatedLoadingStatus, never>
+     */
+    protected function status(): Attribute
+    {
+        return Attribute::get(fn (): EstimatedLoadingStatus => EstimatedLoadingStatus::fromItems($this->items));
     }
 }

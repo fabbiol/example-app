@@ -22,16 +22,50 @@ class StoreEstimatedLoadingRequest extends FormRequest
     {
         return [
             'order_id' => ['nullable', 'exists:orders,id'],
+            'caixa_id' => ['nullable', 'integer'],
             'customer_id' => ['required_without:order_id', 'nullable', 'exists:customers,id'],
-            'product_id' => ['required_without:order_id', 'nullable', 'exists:products,id'],
             'vehicle_plate' => ['required', 'string', 'max:15'],
-            'mode' => ['required', Rule::in(['quantity', 'buckets'])],
-            'input_unit' => ['required_if:mode,quantity', 'nullable', Rule::enum(ProductUnit::class)],
-            'quantity_input' => ['required_if:mode,quantity', 'nullable', 'numeric', 'gt:0'],
-            'buckets_count' => ['required_if:mode,buckets', 'nullable', 'integer', 'min:1'],
-            'bucket_capacity_m3' => ['nullable', 'numeric', 'gt:0'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.product_id' => ['required', 'exists:products,id', 'distinct'],
+            'items.*.input_unit' => ['required', Rule::enum(ProductUnit::class)],
+            'items.*.quantity_input' => ['required', 'numeric', 'gt:0'],
             'loaded_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $caixaId = $this->input('caixa_id');
+
+        if ($caixaId === '' || $caixaId === '0') {
+            $this->merge(['caixa_id' => null]);
+        }
+
+        if ($this->exists('product_id') && ! $this->exists('items')) {
+            $this->merge([
+                'items' => [[
+                    'product_id' => $this->input('product_id'),
+                    'input_unit' => $this->input('input_unit'),
+                    'quantity_input' => $this->input('quantity_input'),
+                ]],
+            ]);
+        }
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'caixa_id.integer' => 'O número de pedido do caixa é inválido.',
+            'items.required' => 'Informe ao menos um produto com quantidade.',
+            'items.min' => 'Informe ao menos um produto com quantidade.',
+            'items.*.product_id.required' => 'Selecione o produto.',
+            'items.*.product_id.distinct' => 'Não repita o mesmo produto no carregamento.',
+            'items.*.quantity_input.required' => 'Informe a quantidade estimada.',
+            'items.*.quantity_input.gt' => 'A quantidade deve ser maior que zero.',
         ];
     }
 
@@ -42,9 +76,11 @@ class StoreEstimatedLoadingRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
-                if ($this->input('mode') === 'buckets' && ! $this->filled('buckets_count')) {
-                    $validator->errors()->add('buckets_count', 'Informe quantas conchas foram carregadas.');
+                if ($this->filled('order_id') || $this->filled('customer_id')) {
+                    return;
                 }
+
+                $validator->errors()->add('customer_id', 'Informe um pedido ou selecione o cliente.');
             },
         ];
     }
